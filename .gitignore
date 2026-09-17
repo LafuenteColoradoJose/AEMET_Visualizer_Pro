@@ -1,0 +1,47 @@
+# =========================
+# Entorno General / SO / IDE
+# =========================
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.log
+
+# =========================
+# Backend (Python / FastAPI)
+# =========================
+# Archivos compilados de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Entornos virtuales
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# =========================
+# Frontend (Angular / Node.js)
+# =========================
+# Dependencias de Node
+node_modules/
+
+# Builds y compilados de Angular
+dist/
+out-tsc/
+.angular/
+
+# Tests y reportes
+coverage/
+
+# Logs de npm
+npm-debug.log
+yarn-error.log
+pnpm-debug.log

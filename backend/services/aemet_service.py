@@ -1,15 +1,25 @@
+"""
+Capa de servicios (Lógica de negocio).
+
+Contiene las funciones que interactúan con la base de datos y
+aplican reglas de negocio sobre los datos meteorológicos.
+"""
 from datetime import date
 from sqlmodel import Session, select
 from models.weather import WeatherRecord
 
-def get_historical_data(session: Session, estacion: str, start_date: date, end_date: date):
+def get_historical_data(session: Session, estacion: str, start_date: date, end_date: date) -> list[WeatherRecord]:
     """
-    Consulta la base de datos SQLite para obtener los registros meteorológicos.
+    Recupera registros meteorológicos históricos de la base de datos local.
     
-    NOTA: Tal como acordamos, esta es la versión conectada a SQLite (Idea 2). 
-    Si en un futuro la petición abarca fechas que no están en la BD (ej. el día de hoy), 
-    aquí añadiremos la llamada a tu script 'descargar_chunk', limpiaremos 
-    con pandas, haremos session.add(), y luego devolveremos el resultado completo.
+    Args:
+        session (Session): Sesión de base de datos activa.
+        estacion (str): Código de la estación meteorológica a consultar.
+        start_date (date): Fecha de inicio del periodo.
+        end_date (date): Fecha de fin del periodo.
+        
+    Returns:
+        list[WeatherRecord]: Lista de registros meteorológicos ordenados cronológicamente.
     """
     statement = (
         select(WeatherRecord)
@@ -20,4 +30,4 @@ def get_historical_data(session: Session, estacion: str, start_date: date, end_d
     )
     
     results = session.exec(statement).all()
-    return results
+    return list(results)

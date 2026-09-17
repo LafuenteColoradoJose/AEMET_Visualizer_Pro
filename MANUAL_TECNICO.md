@@ -8,37 +8,40 @@ El proyecto utiliza una estructura de monorepo para facilitar la sincronización
 
 ```text
 AEMET_Visualizer_Pro/
-├── backend/            # API REST (FastAPI) y scripts de procesamiento
+├── backend/            # API REST (FastAPI), Base de datos SQLite y Tests
 ├── frontend/           # Aplicación Web SPA (Angular)
-├── .gitignore          # Reglas de exclusión de Git globales
-├── README.md           # Documentación principal
-└── MANUAL_TECNICO.md   # Documentación técnica (este archivo)
+├── .gitignore          
+├── README.md           
+└── MANUAL_TECNICO.md   
 ```
 
 ## 2. Backend (Python + FastAPI)
 
 ### 2.1. Gestión de Entorno y Dependencias
-Se utilizará un entorno virtual de Python (`.venv` o `venv`) ubicado dentro de la carpeta `backend/`. 
-Las dependencias principales incluirán:
-- `fastapi`: Framework web para la API.
-- `uvicorn`: Servidor ASGI para ejecutar FastAPI.
-- `pandas` / `requests`: Para el procesamiento y descarga de datos de la AEMET.
+Se utiliza un entorno virtual de Python (`.venv`) en `/backend`. 
+Dependencias principales (`requirements.txt`):
+- `fastapi[standard]`: Framework web y servidor Uvicorn.
+- `sqlmodel`: ORM moderno basado en Pydantic y SQLAlchemy para interactuar con SQLite.
+- `pandas` / `requests`: Para la ingesta y limpieza del *Data Wrangling* desde la AEMET.
+- `pytest` / `pytest-cov`: Para la suite de pruebas y métricas de cobertura.
 
-### 2.2. Flujo de Datos
-1. Ejecución de scripts automatizados para extraer datos crudos de la AEMET.
-2. Limpieza de datos y almacenamiento (CSV/JSON/BD).
-3. FastAPI expone endpoints (ej. `/api/v1/temperaturas`) que el frontend consumirá.
+### 2.2. Flujo de Datos y Caché (SQLite)
+Para evitar saturar la API oficial de la AEMET y garantizar un rendimiento óptimo en el frontend, se ha implementado la siguiente arquitectura de datos:
+1. **Extracción y Limpieza**: Los scripts originales de Machine Learning descargan la información por rangos (manejando errores `429` de AEMET). Usando Pandas, se realiza el *forward fill* para nulos y se parsean correctamente las variables decimales.
+2. **Almacenamiento (Caché local)**: Los datos limpios se insertan en una base de datos local SQLite (`weather.db`).
+3. **Consulta (API)**: Cuando el frontend de Angular solicita datos, el servicio (`services/aemet_service.py`) consulta directamente la tabla optimizada de SQLite, devolviendo JSON limpios en fracciones de segundo.
 
-## 3. Frontend (Angular)
+### 2.3. Pruebas Unitarias y Calidad (QA)
+El backend se rige bajo una filosofía estricta de calidad:
+- **TDD y Cobertura al 100%**: Existe una suite en `/tests` que levanta una base de datos SQLite en memoria (aislada) para validar los endpoints usando `TestClient`. El umbral mínimo aceptado de cobertura es del 100%.
+- **Documentación de Código**: Todo el código de producción (`routers`, `services`, `models`, `core`) incluye *Docstrings* siguiendo el estándar de Google (PEP 257) detallando `Args`, `Returns` y la funcionalidad del módulo.
 
-### 3.1. Stack Tecnológico
+## 3. Frontend (Angular) - (Fase de Diseño)
+
+### 3.1. Stack Tecnológico Previsto
 - **Framework:** Angular.
 - **Estilos:** TailwindCSS para un desarrollo rápido y responsivo.
-- **Visualización de Datos:** Apache ECharts o ApexCharts para renderizar series temporales meteorológicas.
-
-### 3.2. Arquitectura de Componentes
-- Se crearán servicios dedicados en Angular para gestionar las peticiones HTTP hacia el backend (FastAPI).
-- Los componentes visuales serán modulares (ej. `TemperatureChartComponent`, `RainfallMapComponent`).
+- **Visualización de Datos:** Apache ECharts o ApexCharts.
 
 ## 4. Control de Versiones (Git)
-Se recomienda seguir el estándar de *Conventional Commits* (ej. `feat: añade endpoint de lluvia`, `fix: corrige error en gráfica de temperatura`). El despliegue de ambas partes podrá automatizarse en plataformas modernas configurando los comandos de build por directorio (`/backend` y `/frontend`).
+Se recomienda seguir el estándar de *Conventional Commits* (ej. `feat: añade endpoint de lluvia`, `fix: corrige error en gráfica de temperatura`). La base de datos local de SQLite (`weather.db`) ha sido subida en el *commit* fundacional para facilitar la configuración inicial rápida de nuevos desarrolladores.

@@ -1,0 +1,26 @@
+<mat-toolbar color="primary" class="elevation-z4">
+  <span>AEMET Visualizer Pro ⛅</span>
+</mat-toolbar>
+
+<main class="dashboard-container">
+  <mat-card class="elevation-z8">
+    <mat-card-header>
+      <mat-card-title>Histórico de Temperaturas en Córdoba</mat-card-title>
+      <mat-card-subtitle>Datos reales servidos por FastAPI y cacheados en SQLite</mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content class="chart-content">
+      @if (loading()) {
+        <div class="loader-container">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Cargando datos históricos...</p>
+        </div>
+      } @else if (weatherData().length > 0) {
+        <!-- Pasamos el signal al componente tonto -->
+        <app-weather-chart [data]="weatherData()"></app-weather-chart>
+      } @else {
+        <p>No hay datos disponibles para las fechas seleccionadas.</p>
+      }
+    </mat-card-content>
+  </mat-card>
+</main>

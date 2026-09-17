@@ -1,0 +1,40 @@
+<mat-sidenav-container class="sidenav-container">
+  <mat-sidenav #sidenav [mode]="isMobile() ? 'over' : 'side'" [opened]="!isMobile()" class="sidenav">
+    <div class="sidenav-layout">
+      <div>
+        <mat-toolbar color="primary">AEMET Pro</mat-toolbar>
+        <mat-nav-list>
+          <a mat-list-item routerLink="/overview" routerLinkActive="active-link" (click)="closeOnMobile()">
+            <mat-icon matListItemIcon>dashboard</mat-icon>
+            <span matListItemTitle>Visión General</span>
+          </a>
+          <a mat-list-item routerLink="/yearly" routerLinkActive="active-link" (click)="closeOnMobile()">
+            <mat-icon matListItemIcon>calendar_month</mat-icon>
+            <span matListItemTitle>Análisis Anual</span>
+          </a>
+          <a mat-list-item routerLink="/historical" routerLinkActive="active-link" (click)="closeOnMobile()">
+            <mat-icon matListItemIcon>history</mat-icon>
+            <span matListItemTitle>Tendencias Históricas</span>
+          </a>
+        </mat-nav-list>
+      </div>
+      <div class="sidenav-footer">
+        <app-theme-toggle></app-theme-toggle>
+      </div>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar color="primary" class="top-toolbar">
+      @if (isMobile()) {
+        <button mat-icon-button (click)="sidenav.toggle()" aria-label="Abrir menú">
+          <mat-icon>menu</mat-icon>
+        </button>
+      }
+    </mat-toolbar>
+    
+    <main class="content-container">
+      <ng-content></ng-content>
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

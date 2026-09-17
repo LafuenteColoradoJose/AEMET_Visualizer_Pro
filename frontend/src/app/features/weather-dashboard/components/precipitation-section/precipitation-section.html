@@ -1,0 +1,26 @@
+<section class="summary-cards" aria-label="Tarjetas de precipitación">
+  <mat-card class="summary-card elevation-z2" tabindex="0">
+    <mat-card-header>
+      <mat-icon mat-card-avatar class="metric-icon rain-icon">water_drop</mat-icon>
+      <mat-card-title class="prec-total">{{ totalRain() !== null ? totalRain() + ' mm' : '--' }}</mat-card-title>
+      <mat-card-subtitle>Precipitación Acumulada</mat-card-subtitle>
+    </mat-card-header>
+  </mat-card>
+
+  <mat-card class="summary-card elevation-z2" tabindex="0">
+    <mat-card-header>
+      <mat-icon mat-card-avatar class="metric-icon rain-icon">umbrella</mat-icon>
+      <mat-card-title class="prec-total">{{ rainyDays() }}</mat-card-title>
+      <mat-card-subtitle>Días de Lluvia</mat-card-subtitle>
+    </mat-card-header>
+  </mat-card>
+</section>
+
+<mat-card class="elevation-z4 chart-card">
+  <mat-card-header>
+    <mat-card-title>Evolución Pluviométrica</mat-card-title>
+  </mat-card-header>
+  <mat-card-content class="chart-content">
+    <div echarts [options]="chartOption()" class="echart-container"></div>
+  </mat-card-content>
+</mat-card>

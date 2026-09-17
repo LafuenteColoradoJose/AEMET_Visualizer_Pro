@@ -1,26 +1,37 @@
-<mat-toolbar color="primary" class="elevation-z4">
-  <span>AEMET Visualizer Pro ⛅</span>
-</mat-toolbar>
-
-<main class="dashboard-container">
-  <mat-card class="elevation-z8">
-    <mat-card-header>
-      <mat-card-title>Histórico de Temperaturas en Córdoba</mat-card-title>
-      <mat-card-subtitle>Datos reales servidos por FastAPI y cacheados en SQLite</mat-card-subtitle>
-    </mat-card-header>
+<div class="dashboard-header">
+  <div class="title-section">
+    <h2>Visión General de Temperaturas y Lluvias</h2>
+    <p class="subtitle">Córdoba Aeropuerto (Estación 5402)</p>
+  </div>
+  
+  <form class="filter-section" [formGroup]="dateRange" (ngSubmit)="loadData()">
+    <mat-form-field appearance="outline" class="date-picker-field">
+      <mat-label>Filtrar por fechas</mat-label>
+      <mat-date-range-input [rangePicker]="picker" aria-label="Seleccionar rango de fechas">
+        <input matStartDate formControlName="start" placeholder="Inicio">
+        <input matEndDate formControlName="end" placeholder="Fin">
+      </mat-date-range-input>
+      <mat-datepicker-toggle matIconSuffix [for]="picker" aria-label="Abrir calendario"></mat-datepicker-toggle>
+      <mat-date-range-picker #picker></mat-date-range-picker>
+    </mat-form-field>
     
-    <mat-card-content class="chart-content">
-      @if (loading()) {
-        <div class="loader-container">
-          <mat-spinner diameter="40"></mat-spinner>
-          <p>Cargando datos históricos...</p>
-        </div>
-      } @else if (weatherData().length > 0) {
-        <!-- Pasamos el signal al componente tonto -->
-        <app-weather-chart [data]="weatherData()"></app-weather-chart>
-      } @else {
-        <p>No hay datos disponibles para las fechas seleccionadas.</p>
-      }
-    </mat-card-content>
-  </mat-card>
-</main>
+    <button mat-flat-button color="primary" type="submit" [disabled]="loading()" aria-label="Aplicar filtro de fechas">
+      <mat-icon>filter_list</mat-icon> Filtrar
+    </button>
+  </form>
+</div>
+
+@if (loading()) {
+  <div class="loader-container" role="status" aria-label="Cargando datos históricos">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Cargando datos históricos...</p>
+  </div>
+} @else if (weatherData().length > 0) {
+  <app-temperature-section [data]="weatherData()"></app-temperature-section>
+  <app-precipitation-section [data]="weatherData()"></app-precipitation-section>
+} @else {
+  <div class="empty-state" role="alert">
+    <mat-icon class="empty-icon">event_busy</mat-icon>
+    <p>No hay datos disponibles para las fechas seleccionadas.</p>
+  </div>
+}

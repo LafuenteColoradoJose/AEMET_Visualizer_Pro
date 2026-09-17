@@ -1,12 +1,23 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component } from '@angular/core';
+import { RouterOutlet, ChildrenOutletContexts } from '@angular/router';
+import { SidebarComponent } from './shared/components/sidebar/sidebar.component';
+import { slideInAnimation } from './route-animations';
 
 @Component({
-  imports: [RouterOutlet],
   selector: 'app-root',
-  styleUrl: './app.css',
+  standalone: true,
+  imports: [
+    RouterOutlet,
+    SidebarComponent
+  ],
   templateUrl: './app.html',
+  styleUrl: './app.scss',
+  animations: [slideInAnimation]
 })
 export class App {
-  protected readonly title = signal('frontend');
+  constructor(private contexts: ChildrenOutletContexts) {}
+
+  getRouteAnimationData() {
+    return this.contexts.getContext('primary')?.route?.snapshot?.data?.['animation'];
+  }
 }

@@ -1,0 +1,33 @@
+.sidenav-container {
+  height: 100vh;
+}
+
+.sidenav {
+  width: 250px;
+}
+
+.sidenav-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-between;
+}
+
+.sidenav-footer {
+  padding: 16px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.content-container {
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.active-link {
+  background: rgba(0, 0, 0, 0.04);
+}

@@ -1,0 +1,34 @@
+<section class="summary-cards" aria-label="Tarjetas de temperatura">
+  <mat-card class="summary-card elevation-z2" tabindex="0">
+    <mat-card-header>
+      <mat-icon mat-card-avatar class="metric-icon max-icon">thermostat</mat-icon>
+      <mat-card-title class="temp-max">{{ maxTemp() !== null ? maxTemp() + '°C' : '--' }}</mat-card-title>
+      <mat-card-subtitle>Temp. Máxima Absoluta</mat-card-subtitle>
+    </mat-card-header>
+  </mat-card>
+
+  <mat-card class="summary-card elevation-z2" tabindex="0">
+    <mat-card-header>
+      <mat-icon mat-card-avatar class="metric-icon min-icon">ac_unit</mat-icon>
+      <mat-card-title class="temp-min">{{ minTemp() !== null ? minTemp() + '°C' : '--' }}</mat-card-title>
+      <mat-card-subtitle>Temp. Mínima Absoluta</mat-card-subtitle>
+    </mat-card-header>
+  </mat-card>
+
+  <mat-card class="summary-card elevation-z2" tabindex="0">
+    <mat-card-header>
+      <mat-icon mat-card-avatar class="metric-icon avg-icon">device_thermostat</mat-icon>
+      <mat-card-title class="temp-avg">{{ avgTemp() !== null ? avgTemp() + '°C' : '--' }}</mat-card-title>
+      <mat-card-subtitle>Media del periodo</mat-card-subtitle>
+    </mat-card-header>
+  </mat-card>
+</section>
+
+<mat-card class="elevation-z4 chart-card">
+  <mat-card-header>
+    <mat-card-title>Evolución Térmica</mat-card-title>
+  </mat-card-header>
+  <mat-card-content class="chart-content">
+    <div echarts [options]="chartOption()" class="echart-container"></div>
+  </mat-card-content>
+</mat-card>

@@ -1,0 +1,51 @@
+@use '@angular/material' as mat;
+
+// Material Icons
+@import 'https://fonts.googleapis.com/icon?family=Material+Icons';
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  
+  // Set explicit fallback color scheme based on user preference
+  color-scheme: light dark;
+}
+
+// Light / Dark Mode automatic config
+html {
+  @include mat.theme((
+    color: mat.$violet-palette, // Fallback M3 base
+    typography: Roboto,
+    density: 0
+  ), $overrides: (
+    primary: #28695A,
+    primary-container: #47A598,
+    on-primary-container: #ffffff,
+    tertiary: #232BAD,
+    error: #9D0545,
+    // Add variables for dark background mapping later if needed
+  ));
+
+  // Let angular material apply surface colors implicitly based on mode
+  // But we want to allow explicit toggling via a body class:
+  color-scheme: light;
+}
+
+// Forcing Dark Mode with body class overriding the default behavior
+body.dark-mode {
+  color-scheme: dark;
+  
+  // Custom dark mode surface color (the 4th color in user palette)
+  @include mat.theme-overrides((
+    surface: #173669,
+    surface-container: #173669,
+    on-surface: #ffffff
+  ));
+}
+
+// Apply the global material backgrounds
+body {
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+}

@@ -1,3 +1,4 @@
+import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { DashboardPage } from './dashboard-page';
 import { WeatherService } from '../../../../core/services/weather.service';
@@ -11,7 +12,7 @@ describe('DashboardPage', () => {
   let weatherServiceSpy: any;
 
   const mockData: WeatherRecord[] = [
-    { fecha: '2023-01-01', tmax: 15, tmed: 10, tmin: 5, racha: 20, velmedia: 10, sol: 8, presMax: 1020, presMin: 1010 }
+    { fecha: '2023-01-01', tmax: 15, tmed: 10, tmin: 5, prec: 2.5, racha: 20, velmedia: 10, sol: 8, presMax: 1020, presMin: 1010 }
   ];
 
   beforeAll(() => {
@@ -27,8 +28,9 @@ describe('DashboardPage', () => {
       getHistoricalData: vitest.fn().mockReturnValue(of(mockData))
     };
 
+
     await TestBed.configureTestingModule({
-      imports: [DashboardPage],
+      imports: [DashboardPage, NoopAnimationsModule],
       providers: [
         { provide: WeatherService, useValue: weatherServiceSpy },
         provideEchartsCore({ echarts: () => import('echarts') })
@@ -45,7 +47,7 @@ describe('DashboardPage', () => {
     await fixture.whenStable();
 
     expect(component).toBeTruthy();
-    expect(weatherServiceSpy.getHistoricalData).toHaveBeenCalledWith('5402');
+    expect(weatherServiceSpy.getHistoricalData).toHaveBeenCalledWith('5402', undefined, undefined);
     
     // Debería guardar los datos y quitar el loading
     expect(component.weatherData()).toEqual(mockData);

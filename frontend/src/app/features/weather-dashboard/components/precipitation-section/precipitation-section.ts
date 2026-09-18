@@ -1,20 +1,22 @@
-import { Component, input, computed } from '@angular/core';
+import { Component, input, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { NgxEchartsDirective } from 'ngx-echarts';
+import { NgxEchartsModule } from 'ngx-echarts';
 import { EChartsOption } from 'echarts';
 import { WeatherRecord } from '../../../../core/models/weather.interface';
+import { ThemeService } from '../../../../core/services/theme.service';
 
 @Component({
   selector: 'app-precipitation-section',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatIconModule, NgxEchartsDirective],
+  imports: [CommonModule, MatCardModule, MatIconModule, NgxEchartsModule],
   templateUrl: './precipitation-section.html',
   styleUrl: './precipitation-section.scss'
 })
 export class PrecipitationSection {
   data = input.required<WeatherRecord[]>();
+  themeService = inject(ThemeService);
 
   totalRain = computed(() => {
     const records = this.data().map(d => d.prec).filter(p => p != null) as number[];

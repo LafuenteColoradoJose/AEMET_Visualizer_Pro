@@ -1,20 +1,22 @@
-import { Component, input, computed } from '@angular/core';
+import { Component, input, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { NgxEchartsDirective } from 'ngx-echarts';
+import { NgxEchartsModule } from 'ngx-echarts';
 import { EChartsOption } from 'echarts';
 import { WeatherRecord } from '../../../../core/models/weather.interface';
+import { ThemeService } from '../../../../core/services/theme.service';
 
 @Component({
   selector: 'app-temperature-section',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatIconModule, NgxEchartsDirective],
+  imports: [CommonModule, MatCardModule, MatIconModule, NgxEchartsModule],
   templateUrl: './temperature-section.html',
   styleUrl: './temperature-section.scss'
 })
 export class TemperatureSection {
   data = input.required<WeatherRecord[]>();
+  themeService = inject(ThemeService);
 
   maxTemp = computed(() => {
     const records = this.data().map(d => d.tmax).filter(t => t !== null) as number[];

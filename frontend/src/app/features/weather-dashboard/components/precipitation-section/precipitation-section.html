@@ -21,6 +21,6 @@
     <mat-card-title>Evolución Pluviométrica</mat-card-title>
   </mat-card-header>
   <mat-card-content class="chart-content">
-    <div echarts [options]="chartOption()" class="echart-container"></div>
+    <div echarts [options]="chartOption()" [theme]="themeService.isDark() ? 'dark' : 'light'" class="echart-container"></div>
   </mat-card-content>
 </mat-card>

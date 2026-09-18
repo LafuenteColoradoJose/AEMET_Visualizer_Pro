@@ -1,8 +1,8 @@
-import { Component, Inject, PLATFORM_ID, signal } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { Component, inject } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { ThemeService } from '../../../core/services/theme.service';
 
 @Component({
   selector: 'app-theme-toggle',
@@ -12,34 +12,13 @@ import { MatTooltipModule } from '@angular/material/tooltip';
   styleUrl: './theme-toggle.component.scss'
 })
 export class ThemeToggleComponent {
-  isDark = signal<boolean>(false);
-  private isBrowser: boolean;
+  themeService = inject(ThemeService);
 
-  constructor(@Inject(PLATFORM_ID) platformId: Object) {
-    this.isBrowser = isPlatformBrowser(platformId);
-    if (this.isBrowser) {
-      // Check system preference or localStorage
-      const saved = localStorage.getItem('theme');
-      if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        this.setDarkTheme(true);
-      }
-    }
+  get isDark() {
+    return this.themeService.isDark;
   }
 
   toggleTheme() {
-    this.setDarkTheme(!this.isDark());
-  }
-
-  private setDarkTheme(dark: boolean) {
-    this.isDark.set(dark);
-    if (this.isBrowser) {
-      if (dark) {
-        document.body.classList.add('dark-mode');
-        localStorage.setItem('theme', 'dark');
-      } else {
-        document.body.classList.remove('dark-mode');
-        localStorage.setItem('theme', 'light');
-      }
-    }
+    this.themeService.toggleTheme();
   }
 }

@@ -27,8 +27,10 @@
     <p>Cargando datos históricos...</p>
   </div>
 } @else if (weatherData().length > 0) {
-  <app-temperature-section [data]="weatherData()"></app-temperature-section>
-  <app-precipitation-section [data]="weatherData()"></app-precipitation-section>
+  <div class="dashboard-grid">
+    <app-temperature-section [data]="weatherData()"></app-temperature-section>
+    <app-precipitation-section [data]="weatherData()"></app-precipitation-section>
+  </div>
 } @else {
   <div class="empty-state" role="alert">
     <mat-icon class="empty-icon">event_busy</mat-icon>

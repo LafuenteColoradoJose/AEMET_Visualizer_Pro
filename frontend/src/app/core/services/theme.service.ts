@@ -1,10 +1,16 @@
 import { Injectable, Inject, PLATFORM_ID, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
+/**
+ * Servicio encargado de la gestión del Tema de la aplicación (Claro/Oscuro).
+ * Sincroniza el estado mediante un Signal y persiste la selección del usuario en el localStorage.
+ * Por defecto, delega a las preferencias del sistema (`prefers-color-scheme`).
+ */
 @Injectable({
   providedIn: 'root'
 })
 export class ThemeService {
+  /** Signal reactivo que emite `true` si el modo oscuro está activo, y `false` en caso contrario. */
   isDark = signal<boolean>(false);
   private isBrowser: boolean;
 
@@ -18,6 +24,9 @@ export class ThemeService {
     }
   }
 
+  /**
+   * Alterna el tema actual de la aplicación entre Claro y Oscuro.
+   */
   toggleTheme() {
     this.setDarkTheme(!this.isDark());
   }

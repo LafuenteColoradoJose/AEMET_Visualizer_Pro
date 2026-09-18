@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach } from "vitest";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { DashboardPage } from './dashboard-page';

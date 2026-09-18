@@ -1,1 +1,40 @@
-<p>yearly-page works!</p>
+<div class="dashboard-header">
+  <div class="title-section">
+    <h2>Análisis Anual</h2>
+    <p class="subtitle">Córdoba Aeropuerto (Estación 5402)</p>
+  </div>
+  
+  <div class="filter-section">
+    <mat-form-field appearance="outline">
+      <mat-label>Seleccionar Año</mat-label>
+      <input type="text"
+             placeholder="Ej: 2024"
+             matInput
+             [ngModel]="searchInput()"
+             (ngModelChange)="onSearchChange($event)"
+             [matAutocomplete]="auto">
+      <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete" (optionSelected)="onYearSelected($event.option.value)">
+        @for (year of filteredYears(); track year) {
+          <mat-option [value]="year">{{ year }}</mat-option>
+        }
+      </mat-autocomplete>
+    </mat-form-field>
+  </div>
+</div>
+
+@if (loading()) {
+  <div class="loader-container" role="status" aria-label="Cargando datos anuales">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Cargando datos del año {{ selectedYear() }}...</p>
+  </div>
+} @else if (weatherData().length > 0) {
+  <div class="dashboard-grid">
+    <app-yearly-calendar-heatmap [data]="weatherData()" [year]="selectedYear()"></app-yearly-calendar-heatmap>
+    <app-yearly-radial-chart [data]="weatherData()" [year]="selectedYear()"></app-yearly-radial-chart>
+  </div>
+} @else {
+  <div class="empty-state" role="alert">
+    <mat-icon class="empty-icon">event_busy</mat-icon>
+    <p>No hay datos disponibles para el año {{ selectedYear() }}.</p>
+  </div>
+}

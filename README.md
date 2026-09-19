@@ -7,7 +7,8 @@ Bienvenido a **AEMET Visualizer Pro**, una herramienta avanzada para la descarga
 Este proyecto está construido como un **Monorepo** que aloja dos aplicaciones principales fuertemente tipadas y testeadas:
 
 *   **`backend/`**: Desarrollado en **Python** con **FastAPI** y **SQLModel**.
-    *   **Base de Datos**: Utiliza una base de datos local **SQLite** (`weather.db`) para almacenar el histórico meteorológico (actualmente pre-cargado con más de 22.000 registros). Esto garantiza respuestas en milisegundos.
+    *   **Base de Datos**: Utiliza una base de datos local **SQLite** (`weather.db`) para almacenar el histórico meteorológico.
+    *   **Sincronización Pasiva (Lazy Loading)**: El backend incluye un sistema de tareas en segundo plano (`BackgroundTasks`) que contacta con la API de AEMET de forma asíncrona (`httpx`) al recibir peticiones del frontend. Si detecta que faltan meses completos vencidos en la base de datos local, los descarga y actualiza de forma transparente sin penalizar el tiempo de respuesta.
     *   **Calidad**: Sigue los estándares más altos de la industria con inyección de dependencias pura, un **100% de cobertura en tests unitarios** (vía `pytest`) y documentación exhaustiva (Docstrings PEP 257).
 *   **`frontend/`**: Aplicación Web **Angular 22** (SPA) que consume la API para presentar el dashboard interactivo. 
     *   **Diseño**: Utiliza **SCSS** con CSS Grid para un diseño panorámico a dos columnas (sin scroll vertical en escritorio) y soporte nativo para **Modo Oscuro**.

@@ -1,9 +1,12 @@
-import { Component, computed, input, signal } from '@angular/core';
+import { Component, computed, input, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgxEchartsModule } from 'ngx-echarts';
 import type { EChartsOption } from 'echarts';
 import { WeatherRecord } from '../../../../core/models/weather.interface';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { ThemeService } from '../../../../core/services/theme.service';
+
+import { MatCardModule } from '@angular/material/card';
 
 /**
  * Componente que muestra las anomalías (desviaciones respecto a la media histórica)
@@ -12,13 +15,15 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 @Component({
   selector: 'app-historical-anomalies-chart',
   standalone: true,
-  imports: [CommonModule, NgxEchartsModule, MatButtonToggleModule],
+  imports: [CommonModule, NgxEchartsModule, MatButtonToggleModule, MatCardModule],
   templateUrl: './historical-anomalies-chart.html',
   styleUrl: './historical-anomalies-chart.scss'
 })
 export class HistoricalAnomaliesChart {
   /** Registros históricos completos pasados desde la página padre. */
   weatherData = input.required<WeatherRecord[]>();
+  
+  themeService = inject(ThemeService);
   
   /** Toggle para alternar entre temperatura o precipitación. */
   activeMetric = signal<'temp' | 'prec'>('temp');

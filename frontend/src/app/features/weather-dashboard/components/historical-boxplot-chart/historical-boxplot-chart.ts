@@ -1,8 +1,11 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgxEchartsModule } from 'ngx-echarts';
 import type { EChartsOption } from 'echarts';
 import { WeatherRecord } from '../../../../core/models/weather.interface';
+import { ThemeService } from '../../../../core/services/theme.service';
+
+import { MatCardModule } from '@angular/material/card';
 
 /**
  * Componente que muestra la evolución de la temperatura (cajas de dispersión)
@@ -11,13 +14,15 @@ import { WeatherRecord } from '../../../../core/models/weather.interface';
 @Component({
   selector: 'app-historical-boxplot-chart',
   standalone: true,
-  imports: [CommonModule, NgxEchartsModule],
+  imports: [CommonModule, NgxEchartsModule, MatCardModule],
   templateUrl: './historical-boxplot-chart.html',
   styleUrl: './historical-boxplot-chart.scss'
 })
 export class HistoricalBoxplotChart {
   /** Registros históricos completos pasados desde la página padre. */
   weatherData = input.required<WeatherRecord[]>();
+  
+  themeService = inject(ThemeService);
 
   /**
    * Agrupa los registros por década (ej. 1970, 1980) y calcula

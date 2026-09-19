@@ -1,8 +1,8 @@
-<div class="chart-card">
-  <div class="chart-header">
-    <h3>Distribución de Temperatura por Décadas</h3>
-  </div>
-  <div class="chart-container">
-    <div echarts [options]="chartOption()" class="echarts-box"></div>
-  </div>
-</div>
+<mat-card class="chart-card">
+  <mat-card-header class="chart-header">
+    <mat-card-title>Distribución de Temperatura por Décadas</mat-card-title>
+  </mat-card-header>
+  <mat-card-content class="chart-container">
+    <div echarts [options]="chartOption()" [theme]="themeService.isDark() ? 'dark' : 'light'" class="echarts-box"></div>
+  </mat-card-content>
+</mat-card>

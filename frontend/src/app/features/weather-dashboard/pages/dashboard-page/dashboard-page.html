@@ -4,24 +4,38 @@
     <p class="subtitle">Córdoba Aeropuerto (Estación 5402)</p>
   </div>
   
-  <form class="filter-section" [formGroup]="dateRange" (ngSubmit)="loadData()">
-    <mat-form-field appearance="outline" class="date-picker-field">
-      <mat-label>Filtrar por fechas</mat-label>
-      <mat-date-range-input [rangePicker]="picker" aria-label="Seleccionar rango de fechas">
-        <input matStartDate formControlName="start" placeholder="Inicio">
-        <input matEndDate formControlName="end" placeholder="Fin">
-      </mat-date-range-input>
-      <mat-datepicker-toggle matIconSuffix [for]="picker" aria-label="Abrir calendario"></mat-datepicker-toggle>
-      <mat-date-range-picker #picker></mat-date-range-picker>
-    </mat-form-field>
-    
-    <button mat-flat-button color="primary" type="submit" [disabled]="loading()" aria-label="Aplicar filtro de fechas">
-      <mat-icon>filter_list</mat-icon> Filtrar
-    </button>
-  </form>
+  <div class="filter-wrapper">
+    <div class="quick-filters">
+      <mat-chip-listbox aria-label="Filtros rápidos">
+        <mat-chip-option (click)="setPreset('12m')" selected>Últimos 12 meses</mat-chip-option>
+        <mat-chip-option (click)="setPreset('ytd')">Año actual</mat-chip-option>
+        <mat-chip-option (click)="setPreset('3y')">Últimos 3 años</mat-chip-option>
+      </mat-chip-listbox>
+    </div>
+
+    <form class="filter-section" [formGroup]="dateRange" (ngSubmit)="loadData()">
+      <mat-form-field appearance="outline" class="date-picker-field">
+        <mat-label>Filtrar por fechas</mat-label>
+        <mat-date-range-input [rangePicker]="picker" [max]="maxDate" aria-label="Seleccionar rango de fechas">
+          <input matStartDate formControlName="start" placeholder="Inicio">
+          <input matEndDate formControlName="end" placeholder="Fin">
+        </mat-date-range-input>
+        <mat-datepicker-toggle matIconSuffix [for]="picker" aria-label="Abrir calendario"></mat-datepicker-toggle>
+        <mat-date-range-picker #picker></mat-date-range-picker>
+      </mat-form-field>
+      
+      <button mat-flat-button color="primary" type="submit" [disabled]="loading() || !dateRange.value.start || !dateRange.value.end" aria-label="Aplicar filtro de fechas">
+        @if (loading()) {
+          <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
+        } @else {
+          <mat-icon>filter_list</mat-icon> Filtrar
+        }
+      </button>
+    </form>
+  </div>
 </div>
 
-@if (loading()) {
+@if (loading() && weatherData().length === 0) {
   <div class="loader-container" role="status" aria-label="Cargando datos históricos">
     <mat-spinner diameter="40"></mat-spinner>
     <p>Cargando datos históricos...</p>

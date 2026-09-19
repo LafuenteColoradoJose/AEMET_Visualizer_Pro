@@ -14,6 +14,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatChipsModule } from '@angular/material/chips';
 
 @Component({
   selector: 'app-dashboard-page',
@@ -29,6 +30,7 @@ import { MatIconModule } from '@angular/material/icon';
     MatFormFieldModule,
     MatButtonModule,
     MatIconModule,
+    MatChipsModule,
     ReactiveFormsModule
   ],
   templateUrl: './dashboard-page.html',
@@ -40,6 +42,7 @@ export class DashboardPage implements OnInit {
   
   weatherData = signal<WeatherRecord[]>([]);
   loading = signal<boolean>(true);
+  maxDate = new Date(); // Limita el calendario para no elegir el futuro
 
   dateRange = new FormGroup({
     start: new FormControl<Date | null>(null),
@@ -47,6 +50,24 @@ export class DashboardPage implements OnInit {
   });
 
   ngOnInit() {
+    this.loadData();
+  }
+
+  setPreset(preset: '12m' | 'ytd' | '3y') {
+    const today = new Date();
+    // Por defecto AEMET suele tener hasta el último día del mes pasado
+    const end = new Date(today.getFullYear(), today.getMonth(), 0);
+    let start: Date;
+
+    if (preset === '12m') {
+      start = new Date(end.getFullYear() - 1, end.getMonth() + 1, 1);
+    } else if (preset === 'ytd') {
+      start = new Date(today.getFullYear(), 0, 1); // 1 de enero del año actual
+    } else {
+      start = new Date(end.getFullYear() - 3, end.getMonth() + 1, 1);
+    }
+
+    this.dateRange.patchValue({ start, end });
     this.loadData();
   }
 
@@ -58,10 +79,9 @@ export class DashboardPage implements OnInit {
     const start = this.dateRange.value.start;
     const end = this.dateRange.value.end;
 
-    if (start) {
+    // Solo enviamos las fechas si ambas están seleccionadas
+    if (start && end) {
       startStr = start.toISOString().split('T')[0];
-    }
-    if (end) {
       endStr = end.toISOString().split('T')[0];
     }
 
@@ -70,6 +90,14 @@ export class DashboardPage implements OnInit {
       .subscribe({
         next: (data) => {
           this.weatherData.set(data);
+          
+          // Si el formulario estaba vacío (ej: carga inicial), lo rellenamos con la realidad
+          if (data.length > 0 && (!this.dateRange.value.start || !this.dateRange.value.end)) {
+            const firstDate = new Date(data[0].fecha);
+            const lastDate = new Date(data[data.length - 1].fecha);
+            this.dateRange.patchValue({ start: firstDate, end: lastDate }, { emitEvent: false });
+          }
+          
           this.loading.set(false);
         },
         error: (err) => {

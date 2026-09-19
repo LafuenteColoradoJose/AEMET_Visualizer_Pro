@@ -59,7 +59,10 @@ export class TemperatureSection {
       xAxis: {
         type: 'category',
         data: records.map(r => r.fecha),
-        boundaryGap: false
+        boundaryGap: false,
+        axisLabel: {
+          showMaxLabel: true
+        }
       },
       yAxis: { 
         type: 'value',
@@ -69,7 +72,7 @@ export class TemperatureSection {
       },
       dataZoom: [
         { type: 'inside' },
-        { type: 'slider', bottom: '1%', height: 35 }
+        { type: 'slider', bottom: '1%', height: 35, showDetail: false }
       ],
       series: [
         {

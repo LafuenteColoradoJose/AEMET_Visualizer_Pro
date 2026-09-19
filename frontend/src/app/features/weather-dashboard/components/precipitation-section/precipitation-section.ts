@@ -75,7 +75,10 @@ export class PrecipitationSection {
       xAxis: {
         type: 'category',
         data: mData.labels,
-        axisLabel: { rotate: 45 }
+        axisLabel: { 
+          rotate: 45,
+          showMaxLabel: true 
+        }
       },
       yAxis: { 
         type: 'value',
@@ -85,7 +88,7 @@ export class PrecipitationSection {
       },
       dataZoom: [
         { type: 'inside' },
-        { type: 'slider', bottom: '1%', height: 35 }
+        { type: 'slider', bottom: '1%', height: 35, showDetail: false }
       ],
       series: [
         {

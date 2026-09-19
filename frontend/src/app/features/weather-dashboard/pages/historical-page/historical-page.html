@@ -1,1 +1,24 @@
-<p>historical-page works!</p>
+<div class="page-container">
+  <div class="header">
+    <h2>Tendencias Históricas (1950 - Actualidad)</h2>
+    <p class="subtitle">Evolución climática a largo plazo de la estación AEMET seleccionada.</p>
+  </div>
+
+  @if (loading()) {
+    <div class="loader-container">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Cargando millones de datos históricos...</p>
+    </div>
+  } @else {
+    @if (weatherData().length > 0) {
+      <div class="dashboard-grid">
+        <app-historical-boxplot-chart [weatherData]="weatherData()"></app-historical-boxplot-chart>
+        <app-historical-anomalies-chart [weatherData]="weatherData()"></app-historical-anomalies-chart>
+      </div>
+    } @else {
+      <div class="empty-state">
+        <p>No se encontraron datos para la estación seleccionada.</p>
+      </div>
+    }
+  }
+</div>

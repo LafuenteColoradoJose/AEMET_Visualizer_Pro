@@ -1,0 +1,3 @@
+[submodule ".agentic-base"]
+	path = .agentic-base
+	url = https://github.com/LafuenteColoradoJose/mi-entorno-agentico.git

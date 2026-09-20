@@ -1,6 +1,6 @@
 <div class="page-container">
   <div class="header">
-    <h2>Tendencias Históricas (1950 - Actualidad)</h2>
+    <h2>Tendencias Históricas ({{ dateRange() }})</h2>
     <p class="subtitle">Evolución climática a largo plazo de la estación AEMET seleccionada.</p>
   </div>
 
@@ -12,6 +12,7 @@
   } @else {
     @if (weatherData().length > 0) {
       <div class="dashboard-grid">
+        <app-historical-precipitation-chart [weatherData]="weatherData()"></app-historical-precipitation-chart>
         <app-historical-boxplot-chart [weatherData]="weatherData()"></app-historical-boxplot-chart>
         <app-historical-anomalies-chart [weatherData]="weatherData()"></app-historical-anomalies-chart>
       </div>

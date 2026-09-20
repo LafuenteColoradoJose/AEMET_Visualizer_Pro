@@ -1,0 +1,16 @@
+.chart-card {
+  margin-bottom: 24px;
+  background-color: var(--mat-sys-surface-container-low, #f8f9fa);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+  .chart-container {
+    height: 400px;
+    width: 100%;
+  }
+}
+
+:host-context(.dark-mode) .chart-card {
+  background-color: var(--mat-sys-surface-container, #1e1e1e);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}

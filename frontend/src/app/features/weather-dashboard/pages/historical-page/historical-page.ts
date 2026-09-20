@@ -1,10 +1,11 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { WeatherService } from '../../../../core/services/weather.service';
 import { WeatherRecord } from '../../../../core/models/weather.interface';
 import { HistoricalBoxplotChart } from '../../components/historical-boxplot-chart/historical-boxplot-chart';
 import { HistoricalAnomaliesChart } from '../../components/historical-anomalies-chart/historical-anomalies-chart';
+import { HistoricalPrecipitationChart } from '../../components/historical-precipitation-chart/historical-precipitation-chart';
 
 /**
  * Página principal para la sección "Tendencias Históricas".
@@ -18,7 +19,8 @@ import { HistoricalAnomaliesChart } from '../../components/historical-anomalies-
     CommonModule, 
     MatProgressSpinnerModule,
     HistoricalBoxplotChart,
-    HistoricalAnomaliesChart
+    HistoricalAnomaliesChart,
+    HistoricalPrecipitationChart
   ],
   templateUrl: './historical-page.html',
   styleUrl: './historical-page.scss'
@@ -31,6 +33,21 @@ export class HistoricalPage implements OnInit {
   
   /** Flag reactivo que indica si hay una petición de red en progreso. */
   loading = signal<boolean>(false);
+
+  /** Rango dinámico de años basado en los datos devueltos. */
+  dateRange = computed(() => {
+    const data = this.weatherData();
+    if (!data.length) return 'Calculando...';
+    // Se asume que los datos vienen ordenados, pero por si acaso buscamos el min y max
+    let minYear = Infinity;
+    let maxYear = -Infinity;
+    for (const record of data) {
+      const year = parseInt(record.fecha.split('-')[0], 10);
+      if (year < minYear) minYear = year;
+      if (year > maxYear) maxYear = year;
+    }
+    return `${minYear} - ${maxYear}`;
+  });
 
   ngOnInit() {
     this.loadData();

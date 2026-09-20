@@ -47,9 +47,6 @@ yarn-error.log
 pnpm-debug.log
 
 # Archivos de la Base de datos
-*.db
-*.sqlite
-*.sqlite3
 
 # Python coverage & scratch
 .coverage

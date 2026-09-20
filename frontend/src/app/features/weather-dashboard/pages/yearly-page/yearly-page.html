@@ -1,21 +1,20 @@
-<div class="dashboard-header">
+<div class="yearly-header">
   <div class="title-section">
     <h2>Análisis Anual</h2>
     <p class="subtitle">Córdoba Aeropuerto (Estación 5402)</p>
   </div>
   
   <div class="filter-section">
-    <mat-form-field appearance="outline">
+    <mat-form-field appearance="outline" class="year-selector">
       <mat-label>Seleccionar Año</mat-label>
       <input type="text"
-             placeholder="Ej: 2024"
              matInput
              [ngModel]="searchInput()"
              (ngModelChange)="onSearchChange($event)"
              [matAutocomplete]="auto">
-      <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete" (optionSelected)="onYearSelected($event.option.value)">
+      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onYearSelected($event.option.value)">
         @for (year of filteredYears(); track year) {
-          <mat-option [value]="year">{{ year }}</mat-option>
+          <mat-option [value]="year">{{year}}</mat-option>
         }
       </mat-autocomplete>
     </mat-form-field>
@@ -23,18 +22,37 @@
 </div>
 
 @if (loading()) {
-  <div class="loader-container" role="status" aria-label="Cargando datos anuales">
+  <div class="loader-container" role="status" aria-label="Cargando datos del año">
     <mat-spinner diameter="40"></mat-spinner>
-    <p>Cargando datos del año {{ selectedYear() }}...</p>
+    <p>Cargando datos de {{ selectedYear() }}...</p>
   </div>
 } @else if (weatherData().length > 0) {
+  
+  @if (isPartialYear()) {
+    <div class="partial-alert" role="alert">
+      <mat-icon>warning</mat-icon>
+      <div>
+        <strong>Datos parciales:</strong> AEMET solo dispone de registros para <strong>{{ weatherData().length }} días</strong> durante el año {{ selectedYear() }}. Es posible que la estación estuviese inactiva temporalmente.
+      </div>
+    </div>
+  }
+
   <div class="dashboard-grid">
-    <app-yearly-calendar-heatmap [data]="weatherData()" [year]="selectedYear()"></app-yearly-calendar-heatmap>
-    <app-yearly-radial-chart [data]="weatherData()" [year]="selectedYear()"></app-yearly-radial-chart>
+    <app-yearly-calendar-heatmap 
+      [data]="weatherData()" 
+      [year]="selectedYear()">
+    </app-yearly-calendar-heatmap>
+
+    <app-yearly-radial-chart 
+      [data]="weatherData()" 
+      [year]="selectedYear()">
+    </app-yearly-radial-chart>
   </div>
 } @else {
   <div class="empty-state" role="alert">
-    <mat-icon class="empty-icon">event_busy</mat-icon>
-    <p>No hay datos disponibles para el año {{ selectedYear() }}.</p>
+    <mat-icon class="empty-icon">history_toggle_off</mat-icon>
+    <h3>Sin registros históricos</h3>
+    <p>La Agencia Estatal de Meteorología no dispone de datos para la estación seleccionada en el año <strong>{{ selectedYear() }}</strong>.</p>
+    <p class="empty-subtitle">Es probable que la estación estuviera inactiva o que los datos de esa época no hayan sido digitalizados por AEMET.</p>
   </div>
 }

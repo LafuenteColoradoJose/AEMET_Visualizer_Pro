@@ -40,7 +40,7 @@ export class YearlyPage implements OnInit {
   years = Array.from({ length: new Date().getFullYear() - 1960 + 1 }, (_, i) => new Date().getFullYear() - i);
   
   /** Texto introducido en el buscador de autocomplete */
-  searchInput = signal<string>('2024');
+  searchInput = signal<string>(new Date().getFullYear().toString());
 
   /** Años filtrados según la búsqueda */
   filteredYears = computed(() => {
@@ -50,12 +50,34 @@ export class YearlyPage implements OnInit {
   });
 
   /** Signal con el año seleccionado actualmente por el usuario. */
-  selectedYear = signal<number>(2024);
+  selectedYear = signal<number>(new Date().getFullYear());
   
   /** Signal reactivo que almacena los registros climáticos del año seleccionado. */
   weatherData = signal<WeatherRecord[]>([]);
   /** Flag reactivo que indica si hay una petición de red en progreso. */
   loading = signal<boolean>(false);
+
+  /** 
+   * Determina de forma dinámica y genérica si el año actual tiene datos parciales 
+   * (faltan más de 30 días respecto al año completo). 
+   */
+  isPartialYear = computed(() => {
+    const data = this.weatherData();
+    if (data.length === 0) return false;
+    
+    const year = this.selectedYear();
+    
+    // Si es el año en curso, es normal que falten datos porque aún no ha terminado.
+    if (year === new Date().getFullYear()) {
+      return false;
+    }
+
+    const isLeap = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+    const expectedDays = isLeap ? 366 : 365;
+    
+    // Si faltan más de 30 días, consideramos que el dataset está seriamente incompleto
+    return data.length < (expectedDays - 30);
+  });
 
   ngOnInit() {
     this.loadData();

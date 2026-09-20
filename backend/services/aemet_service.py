@@ -165,3 +165,71 @@ async def sync_station_data_bg(estacion: str):
             session.commit()
             logger.info(f"Guardados {len(new_records)} nuevos registros.")
 
+
+async def backfill_historical_data(session: Session, estacion: str, start_date: date, end_date: date) -> list[WeatherRecord]:
+    """
+    Descarga bajo demanda un rango de fechas histórico que falta en la base de datos,
+    lo guarda y lo devuelve. Útil para peticiones explícitas de años pasados.
+    La API de AEMET limita a 6 meses por petición, así que hacemos chunking.
+    """
+    logger.info(f"Backfill on-demand para {estacion} desde {start_date} hasta {end_date}...")
+    
+    current_start = start_date
+    raw_data = []
+    
+    while current_start <= end_date:
+        current_end = current_start + timedelta(days=175) # 175 días < 6 meses
+        if current_end > end_date:
+            current_end = end_date
+            
+        chunk_data = await fetch_aemet_data(estacion, current_start, current_end)
+        if chunk_data:
+            raw_data.extend(chunk_data)
+            
+        current_start = current_end + timedelta(days=1)
+        
+    if not raw_data:
+        return get_historical_data(session, estacion, start_date, end_date)
+        
+    new_records = []
+    for row in raw_data:
+        try:
+            row_date = date.fromisoformat(row['fecha'])
+            
+            # Asegurarnos de que no exista ya en BD para evitar IntegrityError (si la PK es estacion+fecha)
+            # En SQLite es rápido, pero mejor comprobar si no es muy grande.
+            # Nuestro get_historical_data de router lo inserta.
+            
+            record = WeatherRecord(
+                estacion=row.get('indicativo', estacion),
+                fecha=row_date,
+                tmed=safe_float(row.get('tmed')),
+                tmax=safe_float(row.get('tmax')),
+                tmin=safe_float(row.get('tmin')),
+                prec=safe_float(row.get('prec')),
+                velmedia=safe_float(row.get('velmedia')),
+                racha=safe_float(row.get('racha'))
+            )
+            new_records.append(record)
+        except Exception as e:
+            logger.warning(f"Error procesando fila {row} en backfill: {e}")
+            
+    if new_records:
+        # Prevenir duplicados borrando posibles solapamientos o usando merge, pero en SQLAlchemy ORM 
+        # sin configuración de upsert nativo, lo más seguro es filtrar los que ya existen.
+        existing_stmt = select(WeatherRecord.fecha).where(
+            WeatherRecord.estacion == estacion,
+            WeatherRecord.fecha >= start_date,
+            WeatherRecord.fecha <= end_date
+        )
+        existing_dates = set(session.exec(existing_stmt).all())
+        
+        to_insert = [r for r in new_records if r.fecha not in existing_dates]
+        
+        if to_insert:
+            session.add_all(to_insert)
+            session.commit()
+            logger.info(f"Backfill completado: {len(to_insert)} registros insertados.")
+            
+    # Volvemos a leer de la BD para asegurar el orden y formato
+    return get_historical_data(session, estacion, start_date, end_date)

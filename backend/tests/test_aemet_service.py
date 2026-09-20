@@ -151,3 +151,40 @@ async def test_sync_station_bg_bad_data(mock_date, mock_fetch, session: Session)
         from sqlmodel import select
         assert len(session.exec(select(WeatherRecord)).all()) == 1
 
+
+@pytest.mark.asyncio
+@patch("services.aemet_service.fetch_aemet_data")
+async def test_backfill_historical_data(mock_fetch, session: Session):
+    from services.aemet_service import backfill_historical_data
+    # Simulamos descarga de chunks
+    async def fake_fetch(est, start, end):
+        if start.year == 1983 and start.month == 1:
+            return [{"fecha": "1983-01-01", "tmax": "15.0"}]
+        elif start.year == 1983 and start.month == 6:
+            return [{"fecha": "1983-12-31", "tmax": "10.0"}]
+        return []
+        
+    mock_fetch.side_effect = fake_fetch
+    
+    records = await backfill_historical_data(session, "5402", date(1983,1,1), date(1983,12,31))
+    
+    assert len(records) == 2
+    assert records[0].fecha == date(1983, 1, 1)
+    assert records[1].fecha == date(1983, 12, 31)
+
+@pytest.mark.asyncio
+@patch("services.aemet_service.fetch_aemet_data")
+async def test_backfill_historical_data_empty(mock_fetch, session: Session):
+    from services.aemet_service import backfill_historical_data
+    # Simulamos error de AEMET que devuelve []
+    mock_fetch.return_value = []
+    
+    # Pre-poblamos un registro
+    session.add(WeatherRecord(estacion="5402", fecha=date(1983, 1, 1), tmax=20.0))
+    session.commit()
+    
+    records = await backfill_historical_data(session, "5402", date(1983,1,1), date(1983,12,31))
+    
+    # Debe devolver lo que había en base de datos sin borrarlo
+    assert len(records) == 1
+    assert records[0].tmax == 20.0

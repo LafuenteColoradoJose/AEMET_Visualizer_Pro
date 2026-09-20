@@ -55,4 +55,14 @@ async def get_weather(
     background_tasks.add_task(sync_station_data_bg, estacion)
         
     records = get_historical_data(session, estacion, start_date, end_date)
+    
+    # Si no hay datos (o hay muy pocos para un año entero) y se pidió explícitamente ese rango, intentamos descarga bajo demanda
+    # Comprobamos si el rango solicitado es > 30 días y no hay datos
+    from services.aemet_service import backfill_historical_data
+    delta = (end_date - start_date).days
+    
+    if len(records) < (delta * 0.5):  # Si falta más de la mitad de los días
+        # Descargar de AEMET síncronamente (puede tardar 1-3 segundos)
+        records = await backfill_historical_data(session, estacion, start_date, end_date)
+        
     return records

@@ -27,9 +27,11 @@
       <button mat-flat-button color="primary" type="submit" [disabled]="loading() || !dateRange.value.start || !dateRange.value.end" aria-label="Aplicar filtro de fechas">
         @if (loading()) {
           <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
-        } @else {
-          <mat-icon>filter_list</mat-icon> Filtrar
         }
+        @if (!loading()) {
+          <mat-icon>filter_list</mat-icon>
+        }
+        Filtrar
       </button>
     </form>
   </div>

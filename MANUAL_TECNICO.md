@@ -28,8 +28,9 @@ Dependencias principales (`requirements.txt`):
 ### 2.2. Flujo de Datos y Caché (SQLite)
 Para evitar saturar la API oficial de la AEMET y garantizar un rendimiento óptimo en el frontend, se ha implementado la siguiente arquitectura de datos:
 1. **Extracción y Limpieza**: Los scripts originales de Machine Learning descargan la información por rangos (manejando errores `429` de AEMET). Usando Pandas, se realiza el *forward fill* para nulos y se parsean correctamente las variables decimales.
-2. **Almacenamiento (Caché local)**: Los datos limpios se insertan en una base de datos local SQLite (`weather.db`).
-3. **Consulta (API)**: Cuando el frontend de Angular solicita datos, el servicio (`services/aemet_service.py`) consulta directamente la tabla optimizada de SQLite, devolviendo JSON limpios en fracciones de segundo.
+2. **Reconstrucción Histórica (Data Backfilling)**: Para garantizar series climáticas continuas e ininterrumpidas desde 1950 en toda Andalucía, se implementaron rutinas de empalme que recuperan los datos de las estaciones legacy ya clausuradas (ej: `4605` en Huelva, `5270` en Jaén, `6297` en Almería) y los asocian en base de datos a los indicativos de las estaciones modernas (`4642E`, `5270B`, `6325O`), resolviendo las discontinuidades inherentes al sistema de inventario de AEMET.
+3. **Almacenamiento (Caché local)**: Los datos limpios se insertan en una base de datos local SQLite (`weather.db`).
+4. **Consulta (API)**: Cuando el frontend de Angular solicita datos, el servicio (`services/aemet_service.py`) consulta directamente la tabla optimizada de SQLite, devolviendo JSON limpios en fracciones de segundo.
 
 ### 2.3. Pruebas Unitarias y Calidad (QA)
 El backend se rige bajo una filosofía estricta de calidad:

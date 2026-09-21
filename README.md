@@ -8,6 +8,7 @@ Este proyecto está construido como un **Monorepo** que aloja dos aplicaciones p
 
 *   **`backend/`**: Desarrollado en **Python** con **FastAPI** y **SQLModel**.
     *   **Base de Datos**: Utiliza una base de datos local **SQLite** (`weather.db`) para almacenar el histórico meteorológico.
+    *   **Reconstrucción de Series Históricas**: El sistema integra rutinas personalizadas de *Data Backfilling* que empalman el histórico de antiguas estaciones meteorológicas clausuradas en los años 60-80 (ej. Jaén, Huelva y Almería antiguas) con las estaciones modernas correspondientes. Esto garantiza un registro continuo, sólido y sin cortes desde el 1 de enero de **1950** en toda la región andaluza.
     *   **Sincronización Pasiva (Lazy Loading)**: El backend incluye un sistema de tareas en segundo plano (`BackgroundTasks`) que contacta con la API de AEMET de forma asíncrona (`httpx`) al recibir peticiones del frontend. Si detecta que faltan meses completos vencidos en la base de datos local, los descarga y actualiza de forma transparente sin penalizar el tiempo de respuesta.
     *   **Calidad**: Sigue los estándares más altos de la industria con inyección de dependencias pura, un **100% de cobertura en tests unitarios** (vía `pytest`) y documentación exhaustiva (Docstrings PEP 257).
 *   **`frontend/`**: Aplicación Web **Angular 22** (SPA) que consume la API para presentar el dashboard interactivo. 

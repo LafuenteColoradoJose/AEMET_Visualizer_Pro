@@ -21,6 +21,7 @@ import { FormsModule } from '@angular/forms';
     .station-field {
       width: 250px;
       margin-left: 16px;
+      max-width: calc(100vw - 80px); /* Evitar que empuje otros elementos fuera de la pantalla en móvil */
     }
     
     /* Make the form field look cleaner in a toolbar */

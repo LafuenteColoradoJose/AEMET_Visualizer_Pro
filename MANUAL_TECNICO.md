@@ -8,7 +8,7 @@ El proyecto utiliza una estructura de monorepo para facilitar la sincronización
 
 ```text
 AEMET_Visualizer_Pro/
-├── backend/            # API REST (FastAPI), Base de datos SQLite y Tests
+├── backend/            # API REST (FastAPI), Base de datos (PostgreSQL/SQLite) y Tests
 ├── frontend/           # Aplicación Web SPA (Angular)
 ├── .gitignore          
 ├── README.md           
@@ -29,8 +29,8 @@ Dependencias principales (`requirements.txt`):
 Para evitar saturar la API oficial de la AEMET y garantizar un rendimiento óptimo en el frontend, se ha implementado la siguiente arquitectura de datos:
 1. **Extracción y Limpieza**: Los scripts originales de Machine Learning descargan la información por rangos (manejando errores `429` de AEMET). Usando Pandas, se realiza el *forward fill* para nulos y se parsean correctamente las variables decimales.
 2. **Reconstrucción Histórica (Data Backfilling)**: Para garantizar series climáticas continuas e ininterrumpidas desde 1950 en toda Andalucía, se implementaron rutinas de empalme que recuperan los datos de las estaciones legacy ya clausuradas (ej: `4605` en Huelva, `5270` en Jaén, `6297` en Almería) y los asocian en base de datos a los indicativos de las estaciones modernas (`4642E`, `5270B`, `6325O`), resolviendo las discontinuidades inherentes al sistema de inventario de AEMET.
-3. **Almacenamiento (Caché local)**: Los datos limpios se insertan en una base de datos local SQLite (`weather.db`).
-4. **Consulta (API)**: Cuando el frontend de Angular solicita datos, el servicio (`services/aemet_service.py`) consulta directamente la tabla optimizada de SQLite, devolviendo JSON limpios en fracciones de segundo.
+3. **Almacenamiento (Persistencia Híbrida)**: Los datos limpios se insertan en una base de datos **PostgreSQL** en la nube (producción) o en SQLite (`weather.db`) para desarrollo local, utilizando la variable de entorno `DATABASE_URL`.
+4. **Consulta (API)**: Cuando el frontend de Angular solicita datos, el servicio (`services/aemet_service.py`) consulta directamente la base de datos, devolviendo JSON limpios en fracciones de segundo.
 
 ### 2.3. Pruebas Unitarias y Calidad (QA)
 El backend se rige bajo una filosofía estricta de calidad:
@@ -57,3 +57,21 @@ A diferencia de proyectos tradicionales en Angular con Jasmine/Karma, AEMET Visu
 
 ## 4. Control de Versiones (Git)
 Se recomienda seguir el estándar de *Conventional Commits* (ej. `feat: añade endpoint de lluvia`, `fix: corrige error en gráfica de temperatura`). La base de datos local de SQLite (`weather.db`) ha sido subida en el *commit* fundacional para facilitar la configuración inicial rápida de nuevos desarrolladores.
+
+## 5. Arquitectura de Despliegue (Producción)
+
+El proyecto AEMET Visualizer Pro ha sido diseñado para operar bajo un ecosistema de nube distribuida que maximiza el rendimiento y minimiza costes, esquivando las limitaciones tradicionales de las plataformas *Serverless*.
+
+### 5.1. Vercel (Frontend SPA)
+El código de Angular se compila (`@angular/build:application`) y se despliega en Vercel. 
+- **Configuración de Enrutamiento**: Dado que Angular 17+ compila en `dist/frontend/browser`, se ha añadido un archivo `vercel.json` personalizado en la raíz del frontend para garantizar que los *rewrites* de las rutas redirigen correctamente al `index.html` (SPA Routing) y no devuelven errores `404`.
+- **API URL**: El frontend apunta a la URL pública del backend en Render.
+
+### 5.2. Render (Backend FastAPI)
+A diferencia del frontend, el backend **no** se despliega en Vercel Serverless Functions. El motivo técnico es que el plan gratuito de Vercel (Hobby) finaliza forzosamente las funciones a los 10 segundos. Dado que el backend utiliza `BackgroundTasks` para conectarse a la AEMET y descargar meses históricos enteros bajo demanda, el proceso se interrumpiría.
+Se utiliza Render (Web Service) en la región de Frankfurt (EU) para ejecutar el servidor ASGI (Uvicorn) en un contenedor ininterrumpido.
+
+### 5.3. Neon (PostgreSQL Serverless)
+La persistencia de datos históricos (+198,000 registros) ha sido migrada desde el SQLite local a un clúster de **PostgreSQL Serverless** alojado en Neon (región Frankfurt).
+- **Gestión Dinámica de URL**: FastAPI lee la variable de entorno `DATABASE_URL`. Si detecta una cadena `postgresql://`, se conecta nativamente utilizando el driver `psycopg2-binary`. En caso contrario (desarrollo local), revierte de manera segura a `sqlite:///weather.db`.
+- **CORS**: El backend está estrictamente securizado para aceptar peticiones origen (`Access-Control-Allow-Origin`) de `localhost` y del dominio de producción (`*.vercel.app`).

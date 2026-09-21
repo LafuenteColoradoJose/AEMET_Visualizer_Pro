@@ -12,7 +12,7 @@ Bienvenido a **AEMET Visualizer Pro**, una herramienta avanzada para la descarga
 Este proyecto está construido como un **Monorepo** que aloja dos aplicaciones principales fuertemente tipadas y testeadas:
 
 *   **`backend/`**: Desarrollado en **Python** con **FastAPI** y **SQLModel**.
-    *   **Base de Datos**: Utiliza una base de datos local **SQLite** (`weather.db`) para almacenar el histórico meteorológico.
+    *   **Base de Datos Híbrida**: Utiliza **PostgreSQL** (Neon) en entornos de producción y **SQLite** (`weather.db`) para el desarrollo local ágil. para almacenar el histórico meteorológico.
     *   **Reconstrucción de Series Históricas**: El sistema integra rutinas personalizadas de *Data Backfilling* que empalman el histórico de antiguas estaciones meteorológicas clausuradas en los años 60-80 (ej. Jaén, Huelva y Almería antiguas) con las estaciones modernas correspondientes. Esto garantiza un registro continuo, sólido y sin cortes desde el 1 de enero de **1950** en toda la región andaluza.
     *   **Sincronización Pasiva (Lazy Loading)**: El backend incluye un sistema de tareas en segundo plano (`BackgroundTasks`) que contacta con la API de AEMET de forma asíncrona (`httpx`) al recibir peticiones del frontend. Si detecta que faltan meses completos vencidos en la base de datos local, los descarga y actualiza de forma transparente sin penalizar el tiempo de respuesta.
     *   **Calidad**: Sigue los estándares más altos de la industria con inyección de dependencias pura, un **100% de cobertura en tests unitarios** (vía `pytest`) y documentación exhaustiva (Docstrings PEP 257).
@@ -42,6 +42,13 @@ AEMET Visualizer Pro cuenta con una interfaz moderna, responsiva (adaptada a mó
   <img src="docs/assets/tendencias-historicas-light.png" alt="Tendencias Históricas Modo Claro" width="48%">
   <img src="docs/assets/tendencias-historicas-dark.png" alt="Tendencias Históricas Modo Oscuro" width="48%">
 </div>
+
+## 🌍 Arquitectura de Despliegue (Cloud)
+
+Para garantizar alta disponibilidad y costes cero (Free Tiers), el proyecto se despliega bajo una arquitectura distribuida:
+- **Base de Datos (Neon)**: Alojada en un clúster Serverless de PostgreSQL en Europa (Frankfurt).
+- **Backend (Render)**: La API de FastAPI se despliega como un *Web Service* ininterrumpido en Render. Esto permite ejecutar las tareas en segundo plano (`BackgroundTasks`) para sincronizar datos con AEMET sin el estricto límite de 10 segundos por petición que imponen los entornos *Serverless*.
+- **Frontend (Vercel)**: La SPA de Angular se sirve mediante la red global (CDN) ultrarrápida de Vercel.
 
 ## 🛠️ Requisitos Previos
 

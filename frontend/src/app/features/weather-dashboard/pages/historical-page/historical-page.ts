@@ -10,7 +10,7 @@ import { HistoricalPrecipitationChart } from '../../components/historical-precip
 
 /**
  * Página principal para la sección "Tendencias Históricas".
- * Se encarga de descargar todo el registro histórico desde 1960 para
+ * Se encarga de descargar todo el registro histórico desde 1950 para
  * realizar agrupaciones a nivel de cliente (décadas, medias anuales, etc.)
  */
 @Component({

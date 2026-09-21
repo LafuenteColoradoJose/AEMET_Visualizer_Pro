@@ -39,8 +39,8 @@ export class YearlyPage implements OnInit {
 
   readonly stationService = inject(StationService);
 
-  /** Lista de años disponibles generada dinámicamente desde el año actual hasta 1960. */
-  years = Array.from({ length: new Date().getFullYear() - 1960 + 1 }, (_, i) => new Date().getFullYear() - i);
+  /** Lista de años disponibles generada dinámicamente desde el año actual hasta 1950. */
+  years = Array.from({ length: new Date().getFullYear() - 1950 + 1 }, (_, i) => new Date().getFullYear() - i);
   
   /** Texto introducido en el buscador de autocomplete */
   searchInput = signal<string>(new Date().getFullYear().toString());

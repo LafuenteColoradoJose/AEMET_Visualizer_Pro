@@ -12,7 +12,7 @@ export interface Station {
 })
 export class StationService {
   private http = inject(HttpClient);
-  private readonly apiUrl = 'http://127.0.0.1:8000/api/v1/weather';
+  private readonly apiUrl = 'https://aemet-visualizer-pro-backend.onrender.com/api/v1/weather';
   
   // Lista de estaciones disponibles
   stations = signal<Station[]>([]);

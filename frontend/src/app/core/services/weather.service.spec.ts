@@ -35,7 +35,7 @@ describe('WeatherService', () => {
       expect(data).toEqual(dummyData);
     });
 
-    const req = httpMock.expectOne(req => req.url === 'http://127.0.0.1:8000/api/v1/weather/historical' && req.params.get('estacion') === '5402');
+    const req = httpMock.expectOne(req => req.url === 'https://aemet-visualizer-pro-backend.onrender.com/api/v1/weather/historical' && req.params.get('estacion') === '5402');
     expect(req.request.method).toBe('GET');
     expect(req.request.params.has('start_date')).toBe(false);
     expect(req.request.params.has('end_date')).toBe(false);
@@ -48,7 +48,7 @@ describe('WeatherService', () => {
       expect(data).toEqual(dummyData);
     });
 
-    const req = httpMock.expectOne(req => req.url === 'http://127.0.0.1:8000/api/v1/weather/historical');
+    const req = httpMock.expectOne(req => req.url === 'https://aemet-visualizer-pro-backend.onrender.com/api/v1/weather/historical');
     expect(req.request.method).toBe('GET');
     expect(req.request.params.get('estacion')).toBe('1234');
     expect(req.request.params.get('start_date')).toBe('2023-01-01');

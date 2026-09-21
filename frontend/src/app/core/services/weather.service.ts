@@ -12,7 +12,7 @@ import { WeatherRecord } from '../models/weather.interface';
 })
 export class WeatherService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://127.0.0.1:8000/api/v1/weather';
+  private readonly apiUrl = 'https://aemet-visualizer-pro-backend.onrender.com/api/v1/weather';
 
   /**
    * Recupera los datos históricos de una estación meteorológica.

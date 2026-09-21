@@ -17,7 +17,7 @@ STATIONS = [
     "6325O", # Almeria
     "3195",  # Cadiz
     "5402",  # Cordoba
-    "5722A", # Granada
+    "5530E", # Granada
     "4642E", # Huelva
     "5270B", # Jaen
     "6155A", # Malaga

@@ -7,6 +7,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatSidenavModule, MatSidenav } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatListModule } from '@angular/material/list';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
@@ -21,6 +22,7 @@ import { StationSelectorComponent } from '../station-selector/station-selector.c
     MatSidenavModule,
     MatToolbarModule,
     MatListModule,
+    MatDividerModule,
     MatIconModule,
     MatButtonModule,
     ThemeToggleComponent,

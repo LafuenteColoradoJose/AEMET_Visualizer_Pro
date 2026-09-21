@@ -2,7 +2,7 @@
   <mat-sidenav #sidenav [mode]="isMobile() ? 'over' : 'side'" [opened]="!isMobile()" class="sidenav">
     <div class="sidenav-layout">
       <div>
-        <mat-toolbar color="primary">AEMET Pro</mat-toolbar>
+        <mat-toolbar color="primary"><img src="logo.svg" alt="Logo" class="sidebar-logo"> AEMET Pro</mat-toolbar>
         <mat-nav-list>
           <a mat-list-item routerLink="/overview" routerLinkActive="active-link" (click)="closeOnMobile()">
             <mat-icon matListItemIcon>dashboard</mat-icon>

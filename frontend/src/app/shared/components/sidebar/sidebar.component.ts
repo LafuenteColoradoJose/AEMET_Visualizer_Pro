@@ -10,6 +10,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
+import { StationSelectorComponent } from '../station-selector/station-selector.component';
 
 @Component({
   selector: 'app-sidebar',
@@ -22,7 +23,8 @@ import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
     MatListModule,
     MatIconModule,
     MatButtonModule,
-    ThemeToggleComponent
+    ThemeToggleComponent,
+    StationSelectorComponent
   ],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss'

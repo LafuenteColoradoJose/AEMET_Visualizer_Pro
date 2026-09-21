@@ -1,7 +1,7 @@
 <div class="page-container">
   <div class="header">
     <h2>Tendencias Históricas ({{ dateRange() }})</h2>
-    <p class="subtitle">Evolución climática a largo plazo de la estación AEMET seleccionada.</p>
+    <p class="subtitle">{{ stationService.selectedStation().nombre }}</p>
   </div>
 
   @if (loading()) {

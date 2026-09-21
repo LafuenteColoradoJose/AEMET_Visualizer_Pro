@@ -1,7 +1,8 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { WeatherService } from '../../../../core/services/weather.service';
+import { StationService } from '../../../../core/services/station.service';
 import { WeatherRecord } from '../../../../core/models/weather.interface';
 import { HistoricalBoxplotChart } from '../../components/historical-boxplot-chart/historical-boxplot-chart';
 import { HistoricalAnomaliesChart } from '../../components/historical-anomalies-chart/historical-anomalies-chart';
@@ -28,6 +29,8 @@ import { HistoricalPrecipitationChart } from '../../components/historical-precip
 export class HistoricalPage implements OnInit {
   private weatherService = inject(WeatherService);
   
+  readonly stationService = inject(StationService);
+  
   /** Signal reactivo que almacena todo el histórico de registros. */
   weatherData = signal<WeatherRecord[]>([]);
   
@@ -49,8 +52,16 @@ export class HistoricalPage implements OnInit {
     return `${minYear} - ${maxYear}`;
   });
 
+  constructor() {
+    effect(() => {
+      const station = this.stationService.selectedStation();
+      if (station.id) {
+        this.loadData();
+      }
+    });
+  }
+
   ngOnInit() {
-    this.loadData();
   }
 
   private loadData() {
@@ -60,7 +71,8 @@ export class HistoricalPage implements OnInit {
     const startDate = '1950-01-01';
     // const endDate is omitted, so the backend uses today by default
 
-    this.weatherService.getHistoricalData('5402', startDate).subscribe({
+    const stationId = this.stationService.selectedStation().id;
+    this.weatherService.getHistoricalData(stationId, startDate).subscribe({
       next: (data) => {
         this.weatherData.set(data);
         this.loading.set(false);

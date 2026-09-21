@@ -1,8 +1,9 @@
-import { Component, inject, signal, OnInit, DestroyRef } from '@angular/core';
+import { Component, inject, signal, OnInit, DestroyRef, effect } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { WeatherService } from '../../../../core/services/weather.service';
 import { WeatherRecord } from '../../../../core/models/weather.interface';
+import { StationService } from '../../../../core/services/station.service';
 import { TemperatureSection } from '../../components/temperature-section/temperature-section';
 import { PrecipitationSection } from '../../components/precipitation-section/precipitation-section';
 
@@ -39,6 +40,7 @@ import { MatChipsModule } from '@angular/material/chips';
 export class DashboardPage implements OnInit {
   private readonly weatherService = inject(WeatherService);
   private readonly destroyRef = inject(DestroyRef);
+  readonly stationService = inject(StationService);
   
   weatherData = signal<WeatherRecord[]>([]);
   loading = signal<boolean>(true);
@@ -49,8 +51,17 @@ export class DashboardPage implements OnInit {
     end: new FormControl<Date | null>(null)
   });
 
+  constructor() {
+    effect(() => {
+      // Nos suscribimos reactivamente a la estación actual
+      const station = this.stationService.selectedStation();
+      if (station.id) {
+        this.loadData();
+      }
+    });
+  }
+
   ngOnInit() {
-    this.loadData();
   }
 
   setPreset(preset: '12m' | 'ytd' | '3y') {
@@ -85,7 +96,9 @@ export class DashboardPage implements OnInit {
       endStr = end.toISOString().split('T')[0];
     }
 
-    this.weatherService.getHistoricalData('5402', startStr, endStr)
+    const stationId = this.stationService.selectedStation().id;
+
+    this.weatherService.getHistoricalData(stationId, startStr, endStr)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data) => {

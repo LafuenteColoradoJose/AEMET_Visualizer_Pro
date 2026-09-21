@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -7,6 +7,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { WeatherService } from '../../../../core/services/weather.service';
+import { StationService } from '../../../../core/services/station.service';
 import { WeatherRecord } from '../../../../core/models/weather.interface';
 import { YearlyCalendarHeatmap } from '../../components/yearly-calendar-heatmap/yearly-calendar-heatmap';
 import { YearlyRadialChart } from '../../components/yearly-radial-chart/yearly-radial-chart';
@@ -35,6 +36,8 @@ import { YearlyRadialChart } from '../../components/yearly-radial-chart/yearly-r
 })
 export class YearlyPage implements OnInit {
   private weatherService = inject(WeatherService);
+
+  readonly stationService = inject(StationService);
 
   /** Lista de años disponibles generada dinámicamente desde el año actual hasta 1960. */
   years = Array.from({ length: new Date().getFullYear() - 1960 + 1 }, (_, i) => new Date().getFullYear() - i);
@@ -67,7 +70,6 @@ export class YearlyPage implements OnInit {
     
     const year = this.selectedYear();
     
-    // Si es el año en curso, es normal que falten datos porque aún no ha terminado.
     if (year === new Date().getFullYear()) {
       return false;
     }
@@ -75,12 +77,20 @@ export class YearlyPage implements OnInit {
     const isLeap = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
     const expectedDays = isLeap ? 366 : 365;
     
-    // Si faltan más de 30 días, consideramos que el dataset está seriamente incompleto
     return data.length < (expectedDays - 30);
   });
 
+  constructor() {
+    effect(() => {
+      const station = this.stationService.selectedStation();
+      if (station.id) {
+        this.loadData();
+      }
+    });
+  }
+
   ngOnInit() {
-    this.loadData();
+    // Initial load happens via effect
   }
 
   onSearchChange(value: string) {
@@ -96,12 +106,12 @@ export class YearlyPage implements OnInit {
   private loadData() {
     this.loading.set(true);
     
-    // Fetch data for the full selected year
     const year = this.selectedYear();
     const startDate = `${year}-01-01`;
     const endDate = `${year}-12-31`;
 
-    this.weatherService.getHistoricalData('5402', startDate, endDate).subscribe({
+    const stationId = this.stationService.selectedStation().id;
+    this.weatherService.getHistoricalData(stationId, startDate, endDate).subscribe({
       next: (data) => {
         this.weatherData.set(data);
         this.loading.set(false);

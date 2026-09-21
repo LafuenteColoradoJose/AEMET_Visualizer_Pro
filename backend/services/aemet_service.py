@@ -177,6 +177,8 @@ async def backfill_historical_data(session: Session, estacion: str, start_date: 
     current_start = start_date
     raw_data = []
     
+    import asyncio # Ensure it's imported
+    
     while current_start <= end_date:
         current_end = current_start + timedelta(days=175) # 175 días < 6 meses
         if current_end > end_date:
@@ -187,6 +189,7 @@ async def backfill_historical_data(session: Session, estacion: str, start_date: 
             raw_data.extend(chunk_data)
             
         current_start = current_end + timedelta(days=1)
+        await asyncio.sleep(1.5)  # Evitar límite de 50 peticiones/minuto de AEMET
         
     if not raw_data:
         return get_historical_data(session, estacion, start_date, end_date)

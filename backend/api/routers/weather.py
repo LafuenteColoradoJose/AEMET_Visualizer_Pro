@@ -19,6 +19,26 @@ router = APIRouter(
 
 SessionDep = Annotated[Session, Depends(get_session)]
 
+STATIONS_CATALOG = [
+    {"id": "ANDALUCIA", "nombre": "Toda Andalucía (Promedio)", "provincia": "ANDALUCIA"},
+    {"id": "6325O", "nombre": "Almería Aeropuerto", "provincia": "ALMERIA"},
+    {"id": "3195", "nombre": "Cádiz (Observatorio)", "provincia": "CADIZ"},
+    {"id": "5402", "nombre": "Córdoba Aeropuerto", "provincia": "CORDOBA"},
+    {"id": "5722A", "nombre": "Granada Aeropuerto", "provincia": "GRANADA"},
+    {"id": "4642E", "nombre": "Huelva, Ronda Este", "provincia": "HUELVA"},
+    {"id": "5270B", "nombre": "Jaén", "provincia": "JAEN"},
+    {"id": "6155A", "nombre": "Málaga Aeropuerto", "provincia": "MALAGA"},
+    {"id": "5783", "nombre": "Sevilla Aeropuerto", "provincia": "SEVILLA"}
+]
+
+@router.get("/stations", response_model=list[dict])
+async def get_stations():
+    """
+    Devuelve el catálogo de estaciones principales de Andalucía,
+    incluyendo un registro virtual para el promedio regional.
+    """
+    return STATIONS_CATALOG
+
 @router.get("/historical", response_model=list[WeatherRecord])
 async def get_weather(
     session: SessionDep,

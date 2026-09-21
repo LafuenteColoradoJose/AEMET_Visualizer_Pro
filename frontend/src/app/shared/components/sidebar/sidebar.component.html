@@ -18,9 +18,11 @@
           </a>
         </mat-nav-list>
       </div>
-      <div class="sidenav-footer">
-        <app-theme-toggle></app-theme-toggle>
-      </div>
+      @if (!isMobile()) {
+        <div class="sidenav-footer">
+          <app-theme-toggle></app-theme-toggle>
+        </div>
+      }
     </div>
   </mat-sidenav>
 
@@ -33,6 +35,12 @@
       }
       <!-- Selector Regional Global -->
       <app-station-selector></app-station-selector>
+      
+      <span class="spacer"></span>
+      
+      @if (isMobile()) {
+        <app-theme-toggle></app-theme-toggle>
+      }
     </mat-toolbar>
     
     <main class="content-container">

@@ -9,23 +9,25 @@ html, body {
   font-family: Roboto, "Helvetica Neue", sans-serif;
 }
 
-// Light theme explicitly defined to avoid light-dark() CSS function
-// which breaks in older versions of Firefox
+// Light theme explicitly defined
 html {
   @include mat.theme((
     color: (
-      primary: mat.$violet-palette,
-      tertiary: mat.$blue-palette,
+      primary: mat.$blue-palette,
+      tertiary: mat.$cyan-palette,
       theme-type: light // FORCE light tokens
     ),
     typography: Roboto,
     density: 0
   ), $overrides: (
-    primary: #28695A,
-    primary-container: #47A598,
-    on-primary-container: #ffffff,
-    tertiary: #232BAD,
-    error: #9D0545,
+    primary: #2C698D,
+    primary-container: #BAE8E8,
+    on-primary-container: #272643,
+    tertiary: #272643,
+    error: #B3261E,
+    surface: #FFFFFF,
+    surface-container-low: #E3F6F5,
+    surface-container: #E3F6F5
   ));
 
   color-scheme: light;
@@ -35,19 +37,21 @@ html {
 body.dark-mode {
   @include mat.theme((
     color: (
-      primary: mat.$violet-palette,
-      tertiary: mat.$blue-palette,
+      primary: mat.$blue-palette,
+      tertiary: mat.$cyan-palette,
       theme-type: dark // FORCE dark tokens
     )
   ), $overrides: (
-    primary: #28695A,
-    primary-container: #47A598,
-    on-primary-container: #ffffff,
-    tertiary: #232BAD,
-    error: #9D0545,
-    surface: #1e1e1e,
-    surface-container: #1e1e1e,
-    on-surface: #ffffff
+    primary: #BAE8E8,
+    primary-container: #2C698D,
+    on-primary-container: #FFFFFF,
+    tertiary: #BAE8E8,
+    error: #F2B8B5,
+    background: #1b1a2f,
+    surface: #272643,
+    surface-container-low: #272643,
+    surface-container: #272643,
+    on-surface: #FFFFFF
   ));
 
   color-scheme: dark;

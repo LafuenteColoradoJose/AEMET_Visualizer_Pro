@@ -1,4 +1,5 @@
 from datetime import date
+from unittest.mock import patch, AsyncMock
 from fastapi.testclient import TestClient
 from sqlmodel import Session
 from models.weather import WeatherRecord
@@ -9,11 +10,16 @@ def test_root_endpoint(client: TestClient):
     assert response.status_code == 200
     assert "message" in response.json()
 
-def test_get_historical_weather_empty(client: TestClient):
+@patch('services.aemet_service.backfill_historical_data', new_callable=AsyncMock)
+@patch('api.routers.weather.sync_station_data_bg', new_callable=AsyncMock)
+def test_get_historical_weather_empty(mock_sync, mock_backfill, client: TestClient):
     """Prueba el endpoint de histórico cuando la BD está vacía."""
+    mock_backfill.return_value = []
+
     response = client.get("/api/v1/weather/historical")
     assert response.status_code == 200
     assert response.json() == []
+    assert mock_backfill.called
 
 def test_get_historical_weather_with_data(client: TestClient, session: Session):
     """Prueba el endpoint de histórico filtrando por fechas con datos simulados."""
@@ -27,10 +33,11 @@ def test_get_historical_weather_with_data(client: TestClient, session: Session):
     session.commit()
 
     # 2. Hacemos la petición pidiendo solo la estación 5402 en esos días
-    response = client.get(
-        "/api/v1/weather/historical",
-        params={"estacion": "5402", "start_date": "2023-01-01", "end_date": "2023-01-02"}
-    )
+    with patch('services.aemet_service.backfill_historical_data', new_callable=AsyncMock) as mock_backfill, patch('api.routers.weather.sync_station_data_bg', new_callable=AsyncMock) as mock_sync:
+        response = client.get(
+            "/api/v1/weather/historical",
+            params={"estacion": "5402", "start_date": "2023-01-01", "end_date": "2023-01-02"}
+        )
     
     # 3. Verificamos los resultados
     assert response.status_code == 200

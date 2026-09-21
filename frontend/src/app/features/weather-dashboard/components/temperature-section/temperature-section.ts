@@ -55,7 +55,7 @@ export class TemperatureSection {
         left: 'center',
         data: ['Temp. Máxima', 'Temp. Media', 'Temp. Mínima']
       },
-      grid: { left: 50, right: '5%', top: '15%', bottom: '15%' },
+      grid: { left: 50, right: '5%', top: '15%', bottom: 70 },
       xAxis: {
         type: 'category',
         data: records.map(r => r.fecha),

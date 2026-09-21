@@ -71,7 +71,7 @@ export class PrecipitationSection {
         left: 'center',
         data: ['Precipitación']
       },
-      grid: { left: 50, right: '5%', top: '15%', bottom: '20%' },
+      grid: { left: 50, right: '5%', top: '15%', bottom: 70 },
       xAxis: {
         type: 'category',
         data: mData.labels,

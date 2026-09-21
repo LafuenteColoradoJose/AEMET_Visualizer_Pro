@@ -77,7 +77,7 @@ export class HistoricalPrecipitationChart {
       grid: {
         left: '10%',
         right: '10%',
-        bottom: '15%'
+        bottom: 70
       },
       xAxis: {
         type: 'category',

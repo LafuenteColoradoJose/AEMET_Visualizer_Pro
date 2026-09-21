@@ -71,8 +71,10 @@ async def get_weather(
         next_day = end_date + timedelta(days=1)
         start_date = date(next_day.year - 1, next_day.month, 1)
         
-    # Programamos la posible actualización en segundo plano
-    background_tasks.add_task(sync_station_data_bg, estacion)
+    # Si es Andalucía, no podemos descargar de AEMET, se calcula sobre los datos cacheados
+    if estacion != "ANDALUCIA":
+        # Programamos la posible actualización en segundo plano
+        background_tasks.add_task(sync_station_data_bg, estacion)
         
     records = get_historical_data(session, estacion, start_date, end_date)
     
@@ -81,7 +83,7 @@ async def get_weather(
     from services.aemet_service import backfill_historical_data
     delta = (end_date - start_date).days
     
-    if len(records) < (delta * 0.5):  # Si falta más de la mitad de los días
+    if estacion != "ANDALUCIA" and len(records) < (delta * 0.5):  # Si falta más de la mitad de los días
         # Descargar de AEMET síncronamente (puede tardar 1-3 segundos)
         records = await backfill_historical_data(session, estacion, start_date, end_date)
         

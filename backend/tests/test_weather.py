@@ -38,3 +38,14 @@ def test_get_historical_weather_with_data(client: TestClient, session: Session):
     assert len(data) == 2
     assert data[0]["tmax"] == 20.0
     assert data[1]["tmax"] == 22.0
+
+def test_get_stations(client: TestClient):
+    """Prueba que el endpoint de estaciones devuelve el catálogo correcto."""
+    response = client.get("/api/v1/weather/stations")
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) == 9
+    assert data[0]["id"] == "ANDALUCIA"
+    assert data[0]["nombre"] == "Toda Andalucía (Promedio)"
+    assert data[1]["provincia"] == "ALMERIA"

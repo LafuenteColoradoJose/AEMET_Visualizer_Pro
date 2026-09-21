@@ -188,3 +188,41 @@ async def test_backfill_historical_data_empty(mock_fetch, session: Session):
     # Debe devolver lo que había en base de datos sin borrarlo
     assert len(records) == 1
     assert records[0].tmax == 20.0
+
+def test_get_historical_data_andalucia(session: Session):
+    """Prueba la agregación espacial cuando se pide la estación virtual ANDALUCIA."""
+    from services.aemet_service import get_historical_data
+    from datetime import date
+    
+    # 1. Preparar datos simulados de 3 estaciones premium para un mismo día
+    r1 = WeatherRecord(estacion="5402", fecha=date(2023, 1, 1), tmed=10.0, tmax=15.0, prec=2.0)
+    r2 = WeatherRecord(estacion="5783", fecha=date(2023, 1, 1), tmed=12.0, tmax=17.0, prec=0.0)
+    r3 = WeatherRecord(estacion="6155A", fecha=date(2023, 1, 1), tmed=14.0, tmax=19.0, prec=4.0)
+    
+    # Una estación NO premium para el mismo día (debería ignorarse)
+    r4 = WeatherRecord(estacion="1111", fecha=date(2023, 1, 1), tmed=50.0, tmax=50.0, prec=50.0)
+    
+    # Datos para otro día
+    r5 = WeatherRecord(estacion="5402", fecha=date(2023, 1, 2), tmed=10.0, tmax=10.0, prec=0.0)
+    r6 = WeatherRecord(estacion="5783", fecha=date(2023, 1, 2), tmed=20.0, tmax=20.0, prec=10.0)
+
+    session.add_all([r1, r2, r3, r4, r5, r6])
+    session.commit()
+
+    # 2. Consultar ANDALUCIA
+    records = get_historical_data(session, "ANDALUCIA", date(2023, 1, 1), date(2023, 1, 2))
+    
+    # 3. Verificamos agregaciones
+    assert len(records) == 2
+    
+    dia1 = records[0]
+    assert dia1.fecha == date(2023, 1, 1)
+    assert dia1.estacion == "ANDALUCIA"
+    assert dia1.tmed == 12.0 # (10 + 12 + 14) / 3
+    assert dia1.tmax == 17.0 # (15 + 17 + 19) / 3
+    assert dia1.prec == 2.0  # (2 + 0 + 4) / 3
+    
+    dia2 = records[1]
+    assert dia2.fecha == date(2023, 1, 2)
+    assert dia2.tmed == 15.0 # (10 + 20) / 2
+    assert dia2.prec == 5.0  # (0 + 10) / 2

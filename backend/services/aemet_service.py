@@ -5,22 +5,50 @@ Contiene las funciones que interactúan con la base de datos y
 aplican reglas de negocio sobre los datos meteorológicos.
 """
 from datetime import date
-from sqlmodel import Session, select
+from sqlmodel import Session, select, func
 from models.weather import WeatherRecord
 
 def get_historical_data(session: Session, estacion: str, start_date: date, end_date: date) -> list[WeatherRecord]:
     """
     Recupera registros meteorológicos históricos de la base de datos local.
-    
-    Args:
-        session (Session): Sesión de base de datos activa.
-        estacion (str): Código de la estación meteorológica a consultar.
-        start_date (date): Fecha de inicio del periodo.
-        end_date (date): Fecha de fin del periodo.
-        
-    Returns:
-        list[WeatherRecord]: Lista de registros meteorológicos ordenados cronológicamente.
+    Si la estacion es 'ANDALUCIA', devuelve el promedio diario de las estaciones principales.
     """
+    if estacion == "ANDALUCIA":
+        PREMIUM_STATIONS = ["6325O", "3195", "5402", "5722A", "4642E", "5270B", "6155A", "5783"]
+        statement = (
+            select(
+                WeatherRecord.fecha,
+                func.avg(WeatherRecord.tmed).label("tmed"),
+                func.avg(WeatherRecord.tmax).label("tmax"),
+                func.avg(WeatherRecord.tmin).label("tmin"),
+                func.avg(WeatherRecord.prec).label("prec"),
+                func.avg(WeatherRecord.velmedia).label("velmedia"),
+                func.max(WeatherRecord.racha).label("racha")
+            )
+            .where(
+                WeatherRecord.estacion.in_(PREMIUM_STATIONS),
+                WeatherRecord.fecha >= start_date,
+                WeatherRecord.fecha <= end_date
+            )
+            .group_by(WeatherRecord.fecha)
+            .order_by(WeatherRecord.fecha.asc())
+        )
+        
+        results = session.exec(statement).all()
+        return [
+            WeatherRecord(
+                estacion="ANDALUCIA",
+                fecha=row.fecha,
+                tmed=round(row.tmed, 1) if row.tmed is not None else None,
+                tmax=round(row.tmax, 1) if row.tmax is not None else None,
+                tmin=round(row.tmin, 1) if row.tmin is not None else None,
+                prec=round(row.prec, 1) if row.prec is not None else None,
+                velmedia=round(row.velmedia, 1) if row.velmedia is not None else None,
+                racha=round(row.racha, 1) if row.racha is not None else None,
+            )
+            for row in results
+        ]
+
     statement = (
         select(WeatherRecord)
         .where(WeatherRecord.estacion == estacion)

@@ -1,17 +1,25 @@
 """
 Configuración de la conexión a la base de datos.
 
-Este módulo crea el motor de base de datos SQLite y proporciona
-la dependencia para inyectar la sesión en los endpoints de FastAPI.
+Este módulo crea el motor de base de datos a partir de la URL
+proporcionada en las variables de entorno (SQLite local o Postgres remoto).
 """
 from sqlmodel import create_engine, Session
 from collections.abc import Generator
+from core.config import settings
 
-sqlite_file_name = "weather.db"
-sqlite_url = f"sqlite:///{sqlite_file_name}"
+# Si la base de datos es Postgres (URL de Vercel/Neon suele ser postgres:// o postgresql://)
+# SQLAlchemy prefiere postgresql://
+db_url = settings.DATABASE_URL
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
 
-connect_args = {"check_same_thread": False}
-engine = create_engine(sqlite_url, connect_args=connect_args)
+connect_args = {}
+# check_same_thread solo es necesario y soportado por SQLite
+if db_url.startswith("sqlite"):
+    connect_args = {"check_same_thread": False}
+
+engine = create_engine(db_url, connect_args=connect_args)
 
 def get_session() -> Generator[Session, None, None]:
     """

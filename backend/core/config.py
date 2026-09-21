@@ -12,8 +12,10 @@ class Settings(BaseSettings):
     
     Attributes:
         AEMET_API_KEY (str): La clave de la API de la AEMET.
+        DATABASE_URL (str): URL de conexión a la BBDD (por defecto SQLite local).
     """
     AEMET_API_KEY: str = ""
+    DATABASE_URL: str = "sqlite:///weather.db"
     
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

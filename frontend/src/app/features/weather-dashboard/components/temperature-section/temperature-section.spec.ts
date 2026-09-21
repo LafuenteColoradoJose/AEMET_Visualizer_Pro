@@ -1,48 +1,54 @@
-import { describe, it, expect, beforeEach } from "vitest";
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TemperatureSection } from './temperature-section';
 import { provideEchartsCore } from 'ngx-echarts';
-import { WeatherRecord } from '../../../../core/models/weather.interface';
+import { ThemeService } from '../../../../core/services/theme.service';
+import { signal } from '@angular/core';
 
 describe('TemperatureSection', () => {
   let component: TemperatureSection;
   let fixture: ComponentFixture<TemperatureSection>;
-
-  beforeAll(() => {
-    globalThis.ResizeObserver = class {
-      observe() {}
-      unobserve() {}
-      disconnect() {}
-    } as any;
-  });
+  let mockThemeService: any;
 
   beforeEach(async () => {
+    mockThemeService = { isDark: signal(false) };
     await TestBed.configureTestingModule({
       imports: [TemperatureSection],
       providers: [
+        { provide: ThemeService, useValue: mockThemeService },
         provideEchartsCore({ echarts: () => import('echarts') })
       ]
-    })
-    .compileComponents();
-    
+    }).compileComponents();
+
     fixture = TestBed.createComponent(TemperatureSection);
     component = fixture.componentInstance;
-    
-    // Set required input
-    const mockData: WeatherRecord[] = [
-      { fecha: '2023-01-01', tmax: 15, tmed: 10, tmin: 5, prec: 2.5, racha: 20, velmedia: 10, sol: 8, presMax: 1020, presMin: 1010 }
-    ];
-    fixture.componentRef.setInput('data', mockData);
+  });
+
+  it('should handle empty data', () => {
+    fixture.componentRef.setInput('data', []);
     fixture.detectChanges();
+    expect(component.maxTemp()).toBeNull();
+    expect(component.minTemp()).toBeNull();
+    expect(component.avgTemp()).toBeNull();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+  it('should compute temperatures and format tooltip', () => {
+    const data = [
+      { fecha: '2023-01-01', tmax: 20, tmed: 15, tmin: 10 },
+      { fecha: '2023-01-02', tmax: null, tmed: null, tmin: null }
+    ] as any;
+    fixture.componentRef.setInput('data', data);
+    fixture.detectChanges();
+    
+    expect(component.maxTemp()).toBe('20.0');
+    expect(component.minTemp()).toBe('10.0');
+    expect(component.avgTemp()).toBe('15.0');
+    
+    const options: any = component.chartOption();
+    const formatter = options.tooltip.formatter;
+    const res = formatter([{ axisValue: '2023-01-01', marker: '<M>', seriesName: 'Temp. Máxima', value: 20 }]);
+    expect(res).toContain('20 ºC');
 
-  it('should calculate temperature metrics correctly', () => {
-    expect(component.maxTemp()).toBe('15.0');
-    expect(component.minTemp()).toBe('5.0');
-    expect(component.avgTemp()).toBe('10.0');
+    const res2 = formatter({ axisValue: '2023-01-02', marker: '<M>', seriesName: 'Temp. Máxima', value: null });
+    expect(res2).toContain('-- ºC');
   });
 });

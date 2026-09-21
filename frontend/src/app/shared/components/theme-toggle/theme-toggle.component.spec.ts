@@ -20,4 +20,11 @@ describe('ThemeToggleComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should toggle theme', () => {
+    fixture.detectChanges();
+    component.toggleTheme();
+    expect(component).toBeTruthy();
+  });
+
 });

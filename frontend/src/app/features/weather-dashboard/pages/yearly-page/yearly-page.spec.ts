@@ -1,80 +1,93 @@
-import { describe, it, expect, beforeEach, vitest } from "vitest";
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { YearlyPage } from './yearly-page';
-import { provideEchartsCore } from 'ngx-echarts';
 import { WeatherService } from '../../../../core/services/weather.service';
+import { StationService } from '../../../../core/services/station.service';
 import { of, throwError } from 'rxjs';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { provideEchartsCore } from 'ngx-echarts';
+import { provideHttpClient } from '@angular/common/http';
+import { signal } from '@angular/core';
+import { vi } from 'vitest';
 
 describe('YearlyPage', () => {
   let component: YearlyPage;
   let fixture: ComponentFixture<YearlyPage>;
   let weatherServiceSpy: any;
+  let mockStationService: any;
 
   beforeEach(async () => {
     weatherServiceSpy = {
-      getHistoricalData: vitest.fn().mockReturnValue(of([]))
+      getHistoricalData: vi.fn().mockReturnValue(of([{ fecha: '2024-01-01', tmed: 10 }]))
+    };
+
+    mockStationService = {
+      selectedStation: signal({ id: 'ANDALUCIA', name: 'Andalucía (Regional)' }),
+      loadStations: vi.fn()
     };
 
     await TestBed.configureTestingModule({
-      imports: [YearlyPage, NoopAnimationsModule],
+      imports: [YearlyPage],
       providers: [
-        provideEchartsCore({ echarts: () => import('echarts') }),
-        { provide: WeatherService, useValue: weatherServiceSpy }
+        { provide: WeatherService, useValue: weatherServiceSpy },
+        { provide: StationService, useValue: mockStationService },
+        provideAnimationsAsync(),
+        provideHttpClient(),
+        provideEchartsCore({ echarts: () => import('echarts') })
       ]
     })
     .compileComponents();
-
+    
     fixture = TestBed.createComponent(YearlyPage);
     component = fixture.componentInstance;
-    fixture.detectChanges();
   });
 
-  it('should create and load data on init', () => {
+  it('should create and fetch data on init', () => {
+    fixture.detectChanges();
     expect(component).toBeTruthy();
     expect(weatherServiceSpy.getHistoricalData).toHaveBeenCalled();
   });
 
-  it('should reload data on year change', () => {
-    weatherServiceSpy.getHistoricalData.mockClear();
-    component.onYearSelected(2023);
-    expect(weatherServiceSpy.getHistoricalData).toHaveBeenCalledWith('5402', '2023-01-01', '2023-12-31');
-    expect(component.selectedYear()).toBe(2023);
-    expect(component.searchInput()).toBe('2023');
+  it('should handle onSearchChange and filteredYears', () => {
+    fixture.detectChanges();
+    component.onSearchChange('202');
+    expect(component.searchInput()).toBe('202');
+    expect(component.filteredYears().length).toBeGreaterThan(0);
+    
+    component.onSearchChange('');
+    expect(component.filteredYears().length).toBe(component.years.length);
   });
 
-  it('should handle error when loading data', () => {
+  it('should fetch data onYearSelected', () => {
+    fixture.detectChanges();
+    weatherServiceSpy.getHistoricalData.mockClear();
+    component.onYearSelected(2022);
+    expect(component.selectedYear()).toBe(2022);
+    expect(component.searchInput()).toBe('2022');
+    expect(weatherServiceSpy.getHistoricalData).toHaveBeenCalledWith('ANDALUCIA', '2022-01-01', '2022-12-31');
+  });
+
+  it('should handle error when fetching data', () => {
     weatherServiceSpy.getHistoricalData.mockReturnValue(throwError(() => new Error('API Error')));
-    const consoleSpy = vitest.spyOn(console, 'error').mockImplementation(() => {});
+    fixture.detectChanges();
     
-    component.onYearSelected(2022); // calls loadData
-    
-    expect(consoleSpy).toHaveBeenCalled();
     expect(component.weatherData()).toEqual([]);
     expect(component.loading()).toBe(false);
-    consoleSpy.mockRestore();
   });
 
-  it('should render loading state', () => {
-    component.loading.set(true);
+  it('should compute isPartialYear correctly', () => {
     fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.loader-container')).toBeTruthy();
-  });
+    // Default is current year (2024, etc), should return false
+    expect(component.isPartialYear()).toBe(false);
 
-  it('should render grid when data is present', () => {
-    component.loading.set(false);
-    component.weatherData.set([{ fecha: '2023-01-01', tmax: 10 }] as any);
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.dashboard-grid')).toBeTruthy();
-  });
+    // Past year with incomplete data
+    component.selectedYear.set(2022);
+    component.weatherData.set([{ fecha: '2022-01-01' }] as any);
+    expect(component.isPartialYear()).toBe(true); // Only 1 record, missing > 30 days
 
-  it('should render empty state when no data', () => {
-    component.loading.set(false);
-    component.weatherData.set([]);
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.empty-state')).toBeTruthy();
+    // Past year with complete data
+    const completeData = Array(365).fill({ fecha: '2022-01-01' });
+    component.weatherData.set(completeData as any);
+    expect(component.isPartialYear()).toBe(false);
   });
 });

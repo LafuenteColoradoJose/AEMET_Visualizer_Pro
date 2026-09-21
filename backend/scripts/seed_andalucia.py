@@ -25,9 +25,9 @@ STATIONS = [
 ]
 
 async def main():
-    # Descargar datos desde 1970 hasta hoy
-    # Ojo: Algunas pueden empezar más tarde, backfill lo manejará
-    start_date = date(1970, 1, 1)
+    # Descargar datos desde 1950 hasta hoy
+    # El usuario prefiere obtener todo el histórico posible, sin importar el tiempo
+    start_date = date(1950, 1, 1)
     end_date = date.today()
     
     with Session(engine) as session:

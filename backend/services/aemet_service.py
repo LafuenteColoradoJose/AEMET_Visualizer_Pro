@@ -189,7 +189,7 @@ async def backfill_historical_data(session: Session, estacion: str, start_date: 
             raw_data.extend(chunk_data)
             
         current_start = current_end + timedelta(days=1)
-        await asyncio.sleep(1.5)  # Evitar límite de 50 peticiones/minuto de AEMET
+        await asyncio.sleep(2.5)  # MUY CONSERVADOR: 2.5s entre peticiones para garantizar 0 bloqueos AEMET
         
     if not raw_data:
         return get_historical_data(session, estacion, start_date, end_date)

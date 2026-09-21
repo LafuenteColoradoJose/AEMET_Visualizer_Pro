@@ -65,11 +65,6 @@ export class HistoricalPrecipitationChart {
     const textColor = isDark ? '#e0e0e0' : '#424242';
 
     return {
-      title: {
-        text: 'Precipitación Total Anual',
-        left: 'center',
-        textStyle: { color: textColor }
-      },
       tooltip: {
         trigger: 'axis',
         axisPointer: { type: 'shadow' }

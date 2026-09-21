@@ -1,5 +1,10 @@
 # AEMET Visualizer Pro
 
+<div align="center">
+  <img src="docs/assets/mockup-vision-dark.png" alt="AEMET Visualizer Pro Mockup Responsive" width="80%">
+  <br><br>
+</div>
+
 Bienvenido a **AEMET Visualizer Pro**, una herramienta avanzada para la descarga, procesamiento y visualización interactiva de datos meteorológicos extraídos de la Agencia Estatal de Meteorología (AEMET).
 
 ## 🚀 Arquitectura del Proyecto
@@ -15,6 +20,28 @@ Este proyecto está construido como un **Monorepo** que aloja dos aplicaciones p
     *   **Diseño**: Utiliza **SCSS** con CSS Grid para un diseño panorámico a dos columnas (sin scroll vertical en escritorio) y soporte nativo para **Modo Oscuro**.
     *   **Gráficos**: Integra **Apache ECharts** (`ngx-echarts`) para visualizaciones avanzadas (Líneas, Heatmap de Calendario, Barras Polares).
     *   **Calidad**: Mantiene una cobertura de pruebas excepcional mediante **Vitest** y entornos JSDOM.
+
+
+## 📸 Galería y Diseño Responsivo
+
+AEMET Visualizer Pro cuenta con una interfaz moderna, responsiva (adaptada a móviles y tablets) y disponible en modos Claro y Oscuro. Diseñada con baja carga cognitiva para facilitar el análisis de datos masivos.
+
+### Modos Claro y Oscuro
+<div align="center">
+  <img src="docs/assets/mockup-vision-light.png" alt="Visión General Modo Claro" width="48%">
+  <img src="docs/assets/mockup-vision-dark.png" alt="Visión General Modo Oscuro" width="48%">
+</div>
+
+### Mapas de Calor y Análisis Anual
+<div align="center">
+  <img src="docs/assets/mockup-anual-dark.png" alt="Análisis Anual Modo Oscuro" width="80%">
+</div>
+
+### Detalle de Gráficas (Pantalla Completa)
+<div align="center">
+  <img src="docs/assets/tendencias-historicas-light.png" alt="Tendencias Históricas Modo Claro" width="48%">
+  <img src="docs/assets/tendencias-historicas-dark.png" alt="Tendencias Históricas Modo Oscuro" width="48%">
+</div>
 
 ## 🛠️ Requisitos Previos
 

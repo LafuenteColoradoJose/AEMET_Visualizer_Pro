@@ -14,13 +14,13 @@ def get_historical_data(session: Session, estacion: str, start_date: date, end_d
     Si la estacion es 'ANDALUCIA', devuelve el promedio diario de las estaciones principales.
     """
     if estacion == "ANDALUCIA":
-        PREMIUM_STATIONS = ["6325O", "3195", "5402", "5722A", "4642E", "5270B", "6155A", "5783"]
+        PREMIUM_STATIONS = ["6325O", "3195", "5402", "5530E", "4642E", "5270B", "6155A", "5783"]
         statement = (
             select(
                 WeatherRecord.fecha,
                 func.avg(WeatherRecord.tmed).label("tmed"),
-                func.avg(WeatherRecord.tmax).label("tmax"),
-                func.avg(WeatherRecord.tmin).label("tmin"),
+                func.max(WeatherRecord.tmax).label("tmax"),
+                func.min(WeatherRecord.tmin).label("tmin"),
                 func.avg(WeatherRecord.prec).label("prec"),
                 func.avg(WeatherRecord.velmedia).label("velmedia"),
                 func.max(WeatherRecord.racha).label("racha")

@@ -17,6 +17,11 @@ export const routes: Routes = [
     data: { animation: 'HistoricalPage' }
   },
   {
+    path: 'predictions',
+    loadComponent: () => import('./features/predictions/components/prediction-playground/prediction-playground.component').then(c => c.PredictionPlaygroundComponent),
+    data: { animation: 'PredictionsPage' }
+  },
+  {
     path: '',
     redirectTo: 'overview',
     pathMatch: 'full'

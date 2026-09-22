@@ -1,0 +1,67 @@
+<div class="playground-container">
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="loading-state">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p>Cargando red neuronal de AEMET...</p>
+    </div>
+  } @else {
+    <div class="playground-grid">
+      
+      <!-- Panel Izquierdo: Inputs de Usuario -->
+      <mat-card class="controls-card">
+        <mat-card-header>
+          <div mat-card-avatar><mat-icon>tune</mat-icon></div>
+          <mat-card-title>El Oráculo de AEMET</mat-card-title>
+          <mat-card-subtitle>Mueve los deslizadores y observa a la IA pensar</mat-card-subtitle>
+        </mat-card-header>
+        
+        <mat-card-content class="sliders-container">
+          <!-- TMax -->
+          <div class="slider-group">
+            <div class="slider-label">
+              <span>Temperatura Máxima (Hoy)</span>
+              <strong>{{ tmax() }} ºC</strong>
+            </div>
+            <mat-slider min="-5" max="50" step="1" discrete>
+              <input matSliderThumb [ngModel]="tmax()" (ngModelChange)="tmax.set($event)">
+            </mat-slider>
+          </div>
+
+          <!-- TMin -->
+          <div class="slider-group">
+            <div class="slider-label">
+              <span>Temperatura Mínima (Hoy)</span>
+              <strong>{{ tmin() }} ºC</strong>
+            </div>
+            <mat-slider min="-15" max="35" step="1" discrete>
+              <input matSliderThumb [ngModel]="tmin()" (ngModelChange)="tmin.set($event)">
+            </mat-slider>
+          </div>
+
+          <!-- Prec -->
+          <div class="slider-group">
+            <div class="slider-label">
+              <span>Precipitación (Hoy)</span>
+              <strong>{{ prec() }} mm</strong>
+            </div>
+            <mat-slider min="0" max="100" step="1" discrete>
+              <input matSliderThumb [ngModel]="prec()" (ngModelChange)="prec.set($event)">
+            </mat-slider>
+          </div>
+          
+          <div class="hero-prediction">
+            <div class="pred-title">La IA predice para Mañana:</div>
+            <div class="pred-value">{{ forwardPass()?.prediction }} ºC</div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Panel Derecho: Visualización ECharts -->
+      <mat-card class="viz-card">
+        <div echarts [options]="chartOption()" class="echarts-graph"></div>
+      </mat-card>
+      
+    </div>
+  }
+</div>

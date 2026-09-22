@@ -12,6 +12,10 @@
             <mat-icon matListItemIcon>calendar_month</mat-icon>
             <span matListItemTitle>Análisis Anual</span>
           </a>
+          <a mat-list-item routerLink="/predictions" routerLinkActive="active-link" (click)="closeOnMobile()">
+            <mat-icon matListItemIcon>psychology</mat-icon>
+            <span matListItemTitle>Laboratorio IA</span>
+          </a>
           <a mat-list-item routerLink="/historical" routerLinkActive="active-link" (click)="closeOnMobile()">
             <mat-icon matListItemIcon>history</mat-icon>
             <span matListItemTitle>Tendencias Históricas</span>

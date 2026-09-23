@@ -53,3 +53,5 @@ pnpm-debug.log
 test_sync.py
 test_chunk.py
 update_readme.py
+# Scripts locales de IA
+backend/scripts/

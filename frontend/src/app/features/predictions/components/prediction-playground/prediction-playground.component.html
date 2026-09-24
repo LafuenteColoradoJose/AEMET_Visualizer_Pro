@@ -20,7 +20,7 @@
           <!-- TMax -->
           <div class="slider-group">
             <div class="slider-label">
-              <span>Temperatura Máxima (Hoy)</span>
+              <span>Temperatura Máxima (Ayer)</span>
               <strong>{{ tmax() }} ºC</strong>
             </div>
             <mat-slider min="-5" max="50" step="1" discrete>
@@ -31,7 +31,7 @@
           <!-- TMin -->
           <div class="slider-group">
             <div class="slider-label">
-              <span>Temperatura Mínima (Hoy)</span>
+              <span>Temperatura Mínima (Ayer)</span>
               <strong>{{ tmin() }} ºC</strong>
             </div>
             <mat-slider min="-15" max="35" step="1" discrete>
@@ -42,7 +42,7 @@
           <!-- Prec -->
           <div class="slider-group">
             <div class="slider-label">
-              <span>Precipitación (Hoy)</span>
+              <span>Precipitación (Ayer)</span>
               <strong>{{ prec() }} mm</strong>
             </div>
             <mat-slider min="0" max="100" step="1" discrete>
@@ -51,7 +51,7 @@
           </div>
           
           <div class="hero-prediction">
-            <div class="pred-title">La IA predice para Mañana:</div>
+            <div class="pred-title">La IA predice para Hoy:</div>
             <div class="pred-value">{{ forwardPass()?.prediction }} ºC</div>
           </div>
         </mat-card-content>

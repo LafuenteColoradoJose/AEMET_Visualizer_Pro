@@ -109,7 +109,7 @@ export class PredictionPlaygroundComponent implements OnInit {
            symbolSize = inputSize;
         } else if (layerIdx === data.activations.length - 1) {
            // Etiqueta de salida con salto de línea si es móvil
-           nodeName = mobile ? `Predicción:\n${data.prediction} ºC` : `T. Máx Mañana:\n${data.prediction} ºC`;
+           nodeName = mobile ? `Predicción:\n${data.prediction} ºC` : `T. Máx Hoy:\n${data.prediction} ºC`;
            labelShow = true;
            symbolSize = outputSize;
         }

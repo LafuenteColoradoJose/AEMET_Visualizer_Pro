@@ -1,16 +1,16 @@
-import { Component, OnInit, signal, computed, effect, inject, HostListener } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, HostListener, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatSliderModule } from '@angular/material/slider';
+import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { FormsModule } from '@angular/forms';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { provideNativeDateAdapter } from '@angular/material/core';
 import { NgxEchartsModule } from 'ngx-echarts';
 import { AiPredictionService } from '../../services/ai-prediction.service';
-import { EChartsOption } from 'echarts';
 import { StationService } from '../../../../core/services/station.service';
-import { WeatherService } from '../../../../core/services/weather.service';
 
 const ICONS = {
   tmax: 'path://M12 5.5c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zM6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79 1.42-1.41zM4 10.5H1v2h3v-2zm9-9.95h-2V3.5h2V.55zm7.45 3.91l-1.41-1.41-1.79 1.79 1.41 1.41 1.79-1.79zm-3.21 13.7l1.79 1.8 1.41-1.41-1.8-1.79-1.4 1.4zM20 10.5v2h3v-2h-3zm-8 8h-2v3h2v-3zm-7.45-3.91l1.41 1.41 1.79-1.79-1.41-1.41-1.79 1.79z',
@@ -24,244 +24,188 @@ const ICONS = {
   imports: [
     CommonModule, 
     FormsModule, 
-    MatSliderModule, 
     MatCardModule, 
-    MatButtonModule, 
-    MatIconModule,
-    MatProgressSpinnerModule,
+    MatIconModule, 
+    MatProgressSpinnerModule, 
+    MatDatepickerModule, 
+    MatFormFieldModule, 
+    MatInputModule,
     NgxEchartsModule
   ],
+  providers: [provideNativeDateAdapter()],
   templateUrl: './prediction-playground.component.html',
-  styleUrls: ['./prediction-playground.component.scss']
+  styleUrl: './prediction-playground.component.scss'
 })
 export class PredictionPlaygroundComponent implements OnInit {
-  public aiService = inject(AiPredictionService);
+  private aiService = inject(AiPredictionService);
   private stationService = inject(StationService);
-  private weatherService = inject(WeatherService);
-
-  tmax = signal<number>(25);
-  tmin = signal<number>(15);
-  prec = signal<number>(0);
 
   isLoading = signal<boolean>(true);
-  isFetchingData = signal<boolean>(false);
   
-  // Detección responsive inicial
+  targetDate = signal<Date>(new Date());
+  
   isMobile = signal<boolean>(typeof window !== 'undefined' ? window.innerWidth < 992 : false);
 
-  @HostListener('window:resize', ['$event'])
-  onResize(event: any) {
-    this.isMobile.set(event.target.innerWidth < 992);
+  constructor() {
+    effect(() => {
+      const st = this.stationService.selectedStation();
+      if (st && st.id) {
+        this.aiService.loadRecentHistory(st.id);
+      }
+    });
+  }
+
+  @HostListener('window:resize')
+  onResize() {
+    this.isMobile.set(window.innerWidth < 992);
+  }
+
+  onDateChange(newDate: Date) {
+    if (newDate) this.targetDate.set(new Date(newDate));
   }
 
   forwardPass = computed(() => {
     if (!this.aiService.isModelLoaded()) return null;
-    return this.aiService.predictAndTrace(this.tmax(), this.tmin(), this.prec());
+    const st = this.stationService.selectedStation();
+    if (!st || !st.id) return null;
+    if (!this.targetDate()) return null;
+    return this.aiService.predictAndTrace(this.targetDate(), st.id);
   });
 
-  chartOption = computed<EChartsOption>(() => {
+  chartOption = computed(() => {
     const data = this.forwardPass();
-    const model = this.aiService.getModel();
-    
-    if (!data || !model) return {};
+    if (!data) return {};
 
     const mobile = this.isMobile();
-    
-    // Tamaños responsivos
-    const inputSize = mobile ? 25 : 40;
-    const hiddenSizeBase = mobile ? 15 : 30;
-    const outputSize = mobile ? 45 : 70;
-    const labelFontSize = mobile ? 11 : 14;
-
     const nodes: any[] = [];
-    const graphLinks: any[] = [];
-    const animatedLines: any[] = [];
+    const links: any[] = [];
     
-    let nodeIndex = 0;
-    const nodeMapping: number[][] = []; 
-    const nodeCoords = new Map<number, [number, number]>();
-
-    // 1. Crear Nodos
-    data.activations.forEach((layerActivations, layerIdx) => {
-      nodeMapping[layerIdx] = [];
-      const numNeurons = layerActivations.length;
-      const xSpacing = 100 / (data.activations.length - 1);
-      const xPos = layerIdx * xSpacing;
-      
-      layerActivations.forEach((activation, neuronIdx) => {
-        const absAct = Math.abs(activation);
-        
-        const color = activation > 0 ? '#ff3d00' : '#00e5ff';
-        const shadowColor = activation > 0 ? 'rgba(255, 61, 0, 0.8)' : 'rgba(0, 229, 255, 0.8)';
-        
-        let nodeName = `N_${layerIdx}_${neuronIdx}`;
-        let symbol = 'circle';
-        let labelShow = false;
-        let symbolSize = hiddenSizeBase + (absAct * hiddenSizeBase);
-
-        if (layerIdx === 0) {
-           const inputNames = ['T. Máxima', 'T. Mínima', 'Lluvia'];
-           const inputIcons = [ICONS.tmax, ICONS.tmin, ICONS.prec];
-           nodeName = inputNames[neuronIdx];
-           symbol = inputIcons[neuronIdx];
-           // En móvil ocultamos las etiquetas de entrada para no colapsar, dejamos los iconos
-           labelShow = !mobile;
-           symbolSize = inputSize;
-        } else if (layerIdx === data.activations.length - 1) {
-           // Etiqueta de salida con salto de línea si es móvil
-           nodeName = mobile ? `Predicción:\n${data.prediction} ºC` : `T. Máx Hoy:\n${data.prediction} ºC`;
-           labelShow = true;
-           symbolSize = outputSize;
-        }
-
-        const ySpacing = 100 / (Math.max(numNeurons, 1) + 1);
-        const yPos = 100 - ((neuronIdx + 1) * ySpacing);
-        
-        nodeCoords.set(nodeIndex, [xPos, yPos]);
-        
-        nodes.push({
-          id: nodeIndex.toString(),
-          name: nodeName,
-          value: [xPos, yPos],
-          symbol: symbol,
-          symbolSize: symbolSize,
-          itemStyle: {
-            color: color,
-            shadowBlur: 20 * absAct,
-            shadowColor: shadowColor,
-            opacity: 0.2 + (absAct * 0.8)
-          },
-          label: {
-            show: labelShow,
-            position: layerIdx === 0 ? 'left' : (layerIdx === data.activations.length - 1 ? (mobile ? 'bottom' : 'right') : 'top'),
-            fontWeight: 'bold',
-            fontSize: labelFontSize,
-            color: 'var(--text-primary)'
-          },
-          tooltip: {
-            formatter: layerIdx > 0 && layerIdx < data.activations.length - 1 
-              ? `Neurona Oculta<br/>Activación: ${activation.toFixed(3)}` 
-              : '{b}'
-          }
-        });
-        
-        nodeMapping[layerIdx].push(nodeIndex);
-        nodeIndex++;
+    // Inputs (10 neuronas)
+    const inputLayer = data.activations[0];
+    const inputSpacing = 90 / Math.max(1, inputLayer.length - 1);
+    inputLayer.forEach((val, i) => {
+      const yPos = 5 + (i * inputSpacing);
+      nodes.push({
+        id: `in_${i}`,
+        name: `Entrada ${i}\nValor: ${val.toFixed(2)}`,
+        value: [10, yPos],
+        symbolSize: mobile ? 12 : 18,
+        itemStyle: { color: '#00d2ff' },
+        emphasis: { label: { show: false } }
       });
     });
 
-    // 2. Crear Enlaces y Líneas Animadas
-    model.network.weights.forEach((weightMatrix, layerIdx) => {
-      for (let i = 0; i < weightMatrix.length; i++) {
-        for (let j = 0; j < weightMatrix[i].length; j++) {
-          const weight = weightMatrix[i][j];
-          const absWeight = Math.abs(weight);
-          const sourceId = nodeMapping[layerIdx][i];
-          const targetId = nodeMapping[layerIdx + 1][j];
-          
-          const sourceCoord = nodeCoords.get(sourceId);
-          const targetCoord = nodeCoords.get(targetId);
-          
-          const edgeColor = weight > 0 ? '#ff9800' : '#03a9f4';
-          
-          const lineWidth = mobile ? Math.max(0.1, absWeight * 1.5) : Math.max(0.2, absWeight * 2);
-          
-          graphLinks.push({
-            source: sourceId.toString(),
-            target: targetId.toString(),
-            lineStyle: {
-              width: lineWidth,
-              color: edgeColor,
-              opacity: 0.15,
-              curveness: 0.3
-            },
-            tooltip: {
-              formatter: `<strong>Peso:</strong> ${weight.toFixed(3)}<br/>
-              ${weight > 0 ? 'POSITIVA (Calienta)' : 'NEGATIVA (Enfría)'}`
-            }
-          });
+    // Hidden 1 (12 neuronas)
+    const h1Layer = data.activations[1];
+    const h1Spacing = 90 / Math.max(1, h1Layer.length - 1);
+    h1Layer.forEach((val, i) => {
+      const yPos = 5 + (i * h1Spacing);
+      nodes.push({
+        id: `h1_${i}`,
+        name: `Oculta 1 (N_${i})\nActivación: ${val.toFixed(2)}`,
+        value: [40, yPos],
+        symbolSize: mobile ? 10 : 16,
+        itemStyle: { color: val > 0 ? '#ff0055' : '#00d2ff' },
+        emphasis: { label: { show: false } }
+      });
+      inputLayer.forEach((_, j) => {
+        links.push({ source: `in_${j}`, target: `h1_${i}` });
+      });
+    });
 
-          if (absWeight > 0.1) {
-            const particleSize = mobile ? Math.max(1.5, absWeight * 2) : Math.max(2, absWeight * 3);
-            animatedLines.push({
-              coords: [sourceCoord, targetCoord],
-              lineStyle: { color: edgeColor, width: 0, curveness: 0.3 },
-              effect: {
-                show: true,
-                period: 4 / Math.max(0.5, absWeight),
-                trailLength: 0.4,
-                symbolSize: particleSize,
-                color: edgeColor,
-                loop: true
-              }
-            });
-          }
+    // Hidden 2 (8 neuronas)
+    const h2Layer = data.activations[2];
+    const h2Spacing = 90 / Math.max(1, h2Layer.length - 1);
+    h2Layer.forEach((val, i) => {
+      const yPos = 5 + (i * h2Spacing);
+      nodes.push({
+        id: `h2_${i}`,
+        name: `Oculta 2 (N_${i})\nActivación: ${val.toFixed(2)}`,
+        value: [70, yPos],
+        symbolSize: mobile ? 10 : 16,
+        itemStyle: { color: val > 0 ? '#ff0055' : '#00d2ff' },
+        emphasis: { label: { show: false } }
+      });
+      h1Layer.forEach((_, j) => {
+        links.push({ source: `h1_${j}`, target: `h2_${i}` });
+      });
+    });
+
+    // Outputs (3 neuronas)
+    const outputs = [
+      { id: 'out_0', name: mobile ? `Máx:\n${data.predictions.tmax}ºC` : `T. Máxima:\n${data.predictions.tmax}ºC`, icon: ICONS.tmax, color: '#ff0055' },
+      { id: 'out_1', name: mobile ? `Mín:\n${data.predictions.tmin}ºC` : `T. Mínima:\n${data.predictions.tmin}ºC`, icon: ICONS.tmin, color: '#00d2ff' },
+      { id: 'out_2', name: mobile ? `Prec:\n${data.predictions.prec}mm` : `Lluvia:\n${data.predictions.prec}mm`, icon: ICONS.prec, color: '#00b377' } // Verde ligeramente más oscuro para modo claro
+    ];
+    
+    outputs.forEach((out, i) => {
+      const yPos = 20 + (i * 30);
+      nodes.push({
+        id: out.id,
+        name: out.name,
+        value: [95, yPos],
+        symbol: out.icon,
+        symbolSize: mobile ? 28 : 45,
+        itemStyle: { color: out.color },
+        label: {
+          show: true,
+          position: mobile ? 'bottom' : 'left',
+          color: out.color,
+          fontSize: mobile ? 11 : 14,
+          fontWeight: 'bold',
+          formatter: out.name
         }
-      }
+      });
+      h2Layer.forEach((_, j) => {
+        links.push({ source: `h2_${j}`, target: out.id });
+      });
     });
 
     return {
-      tooltip: { trigger: 'item' },
-      xAxis: { type: 'value', show: false, min: -10, max: 110 },
-      yAxis: { type: 'value', show: false, min: -10, max: 110 },
-      animationDurationUpdate: 300,
-      roam: mobile, // Permitir zoom y scroll en móviles para exploración libre
+      backgroundColor: 'transparent',
+      tooltip: {
+        show: true,
+        formatter: (params: any) => {
+          return params.name ? params.name.replace(/\n/g, '<br/>') : '';
+        },
+        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+        textStyle: { color: '#fff', fontSize: 13 },
+        borderWidth: 0,
+        padding: [8, 12]
+      },
+      animationDurationUpdate: 500,
+      xAxis: { type: 'value', show: false, min: 0, max: 100 },
+      yAxis: { type: 'value', show: false, min: 0, max: 100 },
       series: [
         {
-          name: 'Arquitectura',
           type: 'graph',
           coordinateSystem: 'cartesian2d',
+          roam: mobile, // Solo permite zoom/pan en móviles
           layout: 'none',
-          roam: false,
-          edgeSymbol: ['none', 'arrow'],
-          edgeSymbolSize: mobile ? [0, 4] : [0, 6],
+          emphasis: { label: { show: false } },
+          edgeSymbol: ['none', 'none'],
           data: nodes,
-          links: graphLinks,
-          z: 2
+          links: links,
+          // Color gris semi-transparente que funciona perfecto tanto en fondo blanco como oscuro
+          lineStyle: { color: '#888888', opacity: 0.3, width: 1 } 
         },
         {
-          name: 'Flujo de Datos',
           type: 'lines',
           coordinateSystem: 'cartesian2d',
-          polyline: false,
-          effect: { show: true },
-          data: animatedLines,
-          z: 3
+          effect: { show: true, trailLength: 0.2, symbolSize: mobile ? 2 : 3, color: '#00d2ff' },
+          lineStyle: { width: 0 },
+          data: links.map(l => {
+            const s = nodes.find(n => n.id === l.source);
+            const t = nodes.find(n => n.id === l.target);
+            return { coords: [s.value, t.value] };
+          })
         }
       ]
     };
   });
 
-  constructor() {
-    effect(() => {
-      const station = this.stationService.selectedStation();
-      if (station && station.id) {
-        this.fetchLastWeatherRecord(station.id);
-      }
-    });
-  }
-
-  ngOnInit() {
-    this.aiService.loadModel().then(() => {
-      this.isLoading.set(false);
-    });
-  }
-
-  private fetchLastWeatherRecord(stationId: string) {
-    this.isFetchingData.set(true);
-    this.weatherService.getHistoricalData(stationId).subscribe({
-      next: (records) => {
-        if (records && records.length > 0) {
-          const lastRecord = records[records.length - 1];
-          if (lastRecord.tmax != null) this.tmax.set(Math.round(lastRecord.tmax));
-          if (lastRecord.tmin != null) this.tmin.set(Math.round(lastRecord.tmin));
-          if (lastRecord.prec != null) this.prec.set(Math.round(lastRecord.prec));
-        }
-        this.isFetchingData.set(false);
-      },
-      error: () => {
-        this.isFetchingData.set(false);
-      }
-    });
+  async ngOnInit() {
+    await this.aiService.loadModel();
+    this.isLoading.set(false);
   }
 }

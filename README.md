@@ -43,6 +43,11 @@ AEMET Visualizer Pro cuenta con una interfaz moderna, responsiva (adaptada a mó
   <img src="docs/assets/tendencias-historicas-dark.png" alt="Tendencias Históricas Modo Oscuro" width="48%">
 </div>
 
+### Prediction Playground (Inteligencia Artificial)
+<div align="center">
+  AEMET Visualizer Pro integra un motor de inferencia neuronal nativo en el navegador que permite predecir el clima futuro y visualizar las activaciones de sus capas ocultas en tiempo real.
+</div>
+
 ## 🌍 Arquitectura de Despliegue (Cloud)
 
 Para garantizar alta disponibilidad y costes cero (Free Tiers), el proyecto se despliega bajo una arquitectura distribuida:

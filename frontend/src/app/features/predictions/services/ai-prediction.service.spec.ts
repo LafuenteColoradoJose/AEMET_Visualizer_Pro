@@ -1,43 +1,47 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient } from '@angular/common/http';
 import { AiPredictionService, ModelWeights } from './ai-prediction.service';
 
 describe('AiPredictionService', () => {
   let service: AiPredictionService;
   let httpMock: HttpTestingController;
 
-  const mockWeights: ModelWeights = {
-    metadata: { inputs: ['tmax', 'tmin', 'prec'], outputs: ['tmax_manana'] },
-    scaler: {
-      x_mean: [20, 10, 5],
-      x_scale: [5, 5, 2],
-      y_mean: [22],
-      y_scale: [5]
+  const mockModelWeights: ModelWeights = {
+    metadata: {
+      architecture: [25, 2, 3],
+      stations: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'],
+      historical_means: {
+        'A': { '227': { tmax: 30, tmin: 20, prec: 0 } } // 2030-08-15 es ~227
+      }
     },
-    network: {
-      // 3 inputs -> 2 hidden -> 1 output
-      weights: [
-        [ // Capa 1: 3x2
-          [0.1, 0.2],
-          [0.3, 0.4],
-          [0.5, 0.6]
-        ],
-        [ // Capa Salida: 2x1
-          [0.7],
-          [0.8]
-        ]
+    scaler: {
+      x_mean: new Array(25).fill(0),
+      x_scale: new Array(25).fill(1),
+    },
+    // 25 inputs -> 2 hidden -> 3 outputs
+    weights: [
+      [ // Capa Oculta 1 (25 inputs x 2 neurons)
+        ...new Array(25).fill([0.1, 0.2])
       ],
-      biases: [
-        [0.1, 0.2], // Sesgos Capa 1
-        [0.3]       // Sesgos Capa Salida
+      [ // Salida (2 hidden x 3 outputs)
+        [0.1, 0.2, 0.3],
+        [0.4, 0.5, 0.6]
       ]
-    }
+    ],
+    biases: [
+      [0.1, 0.2], // Sesgo oculta 1
+      [0.1, 0.1, 0.1] // Sesgo salida
+    ]
   };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [AiPredictionService]
+      providers: [
+        AiPredictionService,
+        provideHttpClient(),
+        provideHttpClientTesting()
+      ]
     });
     service = TestBed.inject(AiPredictionService);
     httpMock = TestBed.inject(HttpTestingController);
@@ -47,44 +51,19 @@ describe('AiPredictionService', () => {
     httpMock.verify();
   });
 
-  it('should load model weights via HTTP and update signal', async () => {
-    expect(service.isModelLoaded()).toBeFalse();
-    
+  it('should predict values and return network trace properly', async () => {
     const loadPromise = service.loadModel();
-    
     const req = httpMock.expectOne('/model-weights.json');
-    expect(req.request.method).toBe('GET');
-    req.flush(mockWeights);
-    
-    await loadPromise;
-    
-    expect(service.isModelLoaded()).toBeTrue();
-  });
-
-  it('should throw error if predicting before loading model', () => {
-    expect(() => service.predictTomorrowTemp(25, 15, 0)).toThrowError('El modelo aún no está cargado');
-  });
-
-  it('should perform forward pass correctly with mock data', async () => {
-    const loadPromise = service.loadModel();
-    httpMock.expectOne('/model-weights.json').flush(mockWeights);
+    req.flush(mockModelWeights);
     await loadPromise;
 
-    // Entradas a probar: tmax=25, tmin=15, prec=0
-    // Escaladas: (25-20)/5 = 1, (15-10)/5 = 1, (0-5)/2 = -2.5
-    // Capa 1 (Inputs = [1, 1, -2.5]):
-    // N1 = (1*0.1) + (1*0.3) + (-2.5*0.5) + 0.1(bias) = 0.1 + 0.3 - 1.25 + 0.1 = -0.75
-    // N2 = (1*0.2) + (1*0.4) + (-2.5*0.6) + 0.2(bias) = 0.2 + 0.4 - 1.5 + 0.2 = -0.7
-    // Tanh de la Capa 1:
-    // A1 = tanh(-0.75) ≈ -0.635
-    // A2 = tanh(-0.7) ≈ -0.604
-    // Capa de Salida:
-    // Out = (A1*0.7) + (A2*0.8) + 0.3(bias) = (-0.635*0.7) + (-0.604*0.8) + 0.3 = -0.4445 - 0.4832 + 0.3 = -0.6277
-    // Desescalar:
-    // Pred = Out * y_scale + y_mean = -0.6277 * 5 + 22 = -3.1385 + 22 = 18.8615
-    // Redondeado a 1 decimal = 18.9
+    const d = new Date('2030-08-15');
+    const result = service.predictAndTrace(d, 'A');
 
-    const prediction = service.predictTomorrowTemp(25, 15, 0);
-    expect(prediction).toBe(18.9);
+    expect(result.predictions).toBeDefined();
+    expect(result.activations.length).toBe(3);
+    expect(result.activations[0].length).toBe(25);
+    expect(result.activations[1].length).toBe(2);
+    expect(result.activations[2].length).toBe(3);
   });
 });

@@ -3,7 +3,7 @@
   @if (isLoading()) {
     <div class="loading-state">
       <mat-spinner diameter="48"></mat-spinner>
-      <p>Cargando red neuronal de AEMET...</p>
+      <p>Cargando Cerebro Climático...</p>
     </div>
   } @else {
     <div class="playground-grid">
@@ -11,48 +11,28 @@
       <!-- Panel Izquierdo: Inputs de Usuario -->
       <mat-card class="controls-card">
         <mat-card-header>
-          <div mat-card-avatar><mat-icon>tune</mat-icon></div>
-          <mat-card-title>El Oráculo de AEMET</mat-card-title>
-          <mat-card-subtitle>Mueve los deslizadores y observa a la IA pensar</mat-card-subtitle>
+          <div mat-card-avatar><mat-icon>public</mat-icon></div>
+          <mat-card-title>El Oráculo Climático</mat-card-title>
+          <mat-card-subtitle>Elige una fecha para viajar al futuro</mat-card-subtitle>
         </mat-card-header>
         
         <mat-card-content class="sliders-container">
-          <!-- TMax -->
-          <div class="slider-group">
-            <div class="slider-label">
-              <span>Temperatura Máxima (Ayer)</span>
-              <strong>{{ tmax() }} ºC</strong>
-            </div>
-            <mat-slider min="-5" max="50" step="1" discrete>
-              <input matSliderThumb [ngModel]="tmax()" (ngModelChange)="tmax.set($event)">
-            </mat-slider>
-          </div>
-
-          <!-- TMin -->
-          <div class="slider-group">
-            <div class="slider-label">
-              <span>Temperatura Mínima (Ayer)</span>
-              <strong>{{ tmin() }} ºC</strong>
-            </div>
-            <mat-slider min="-15" max="35" step="1" discrete>
-              <input matSliderThumb [ngModel]="tmin()" (ngModelChange)="tmin.set($event)">
-            </mat-slider>
-          </div>
-
-          <!-- Prec -->
-          <div class="slider-group">
-            <div class="slider-label">
-              <span>Precipitación (Ayer)</span>
-              <strong>{{ prec() }} mm</strong>
-            </div>
-            <mat-slider min="0" max="100" step="1" discrete>
-              <input matSliderThumb [ngModel]="prec()" (ngModelChange)="prec.set($event)">
-            </mat-slider>
-          </div>
           
-          <div class="hero-prediction">
-            <div class="pred-title">La IA predice para Hoy:</div>
-            <div class="pred-value">{{ forwardPass()?.prediction }} ºC</div>
+          <mat-form-field appearance="outline" class="w-100" style="margin-top: 1rem; width: 100%;">
+            <mat-label>Día Objetivo (Predicción)</mat-label>
+            <input matInput [matDatepicker]="picker" [ngModel]="targetDate()" (dateChange)="onDateChange($event.value)">
+            <mat-hint>DD/MM/YYYY</mat-hint>
+            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+          </mat-form-field>
+          
+          <div class="hero-prediction" style="margin-top: 2rem;">
+            <div class="pred-title">T. Máxima Esperada:</div>
+            <div class="pred-value" style="color: #ff0055;">{{ forwardPass()?.predictions?.tmax }} ºC</div>
+            <div class="pred-title" style="margin-top: 10px;">T. Mínima Esperada:</div>
+            <div class="pred-value" style="color: #00d2ff; font-size: 2.5rem;">{{ forwardPass()?.predictions?.tmin }} ºC</div>
+            <div class="pred-title" style="margin-top: 10px;">Lluvia Esperada:</div>
+            <div class="pred-value" style="color: #00ffaa; font-size: 2.5rem;">{{ forwardPass()?.predictions?.prec }} mm</div>
           </div>
         </mat-card-content>
       </mat-card>

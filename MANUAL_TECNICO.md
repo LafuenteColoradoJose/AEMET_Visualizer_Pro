@@ -37,6 +37,12 @@ El backend se rige bajo una filosofía estricta de calidad:
 - **TDD y Cobertura al 100%**: Existe una suite en `/tests` que levanta una base de datos SQLite en memoria (aislada) para validar los endpoints usando `TestClient`. El umbral mínimo aceptado de cobertura es del 100%.
 - **Documentación de Código**: Todo el código de producción (`routers`, `services`, `models`, `core`) incluye *Docstrings* siguiendo el estándar de Google (PEP 257) detallando `Args`, `Returns` y la funcionalidad del módulo.
 
+### 2.4. Inteligencia Artificial (MLPRegressor y Residual Forecasting)
+El proyecto incluye un motor predictivo basado en Redes Neuronales Artificiales (Multilayer Perceptron). Para lograr precisión tanto a corto como a largo plazo con un único modelo, se ha diseñado una arquitectura de **Pronóstico de Anomalías (Residual Forecasting)**:
+1. **Entrenamiento (Python)**: El script `train_weather_model.py` extrae las medias históricas diarias y calcula la anomalía de cada registro. El modelo se entrena para predecir la anomalía objetivo en base a 25 entradas (Seno/Coseno del día, 8 estaciones One-Hot, y 15 variables de *lag* correspondientes a la anomalía de los 5 días previos). Los pesos finales se exportan a un `model-weights.json`.
+2. **Inferencia Aislada (Angular)**: El frontend decodifica el JSON y ejecuta las multiplicaciones de matrices de la red neuronal enteramente en el navegador del cliente mediante el servicio `AiPredictionService`.
+3. **Fallback Híbrido**: Al usar anomalías como *lags*, si la aplicación pide una predicción a 10 años vista (donde no hay historial previo), el servicio inyecta `0` como anomalía. Matemáticamente, esto desactiva el peso de los 5 días previos y permite que la red emita el promedio histórico base de forma estable.
+
 ## 3. Frontend (Angular 22)
 
 ### 3.1. Stack Tecnológico y Arquitectura
@@ -48,6 +54,7 @@ El backend se rige bajo una filosofía estricta de calidad:
   - Componentes estadísticos tipo *Cards* (Días de Lluvia).
   - Mapas de Calor tipo Calendario (Análisis Anual de Temperatura Máxima).
   - Gráficos Polares y Radiales (Análisis Anual de Precipitación por meses).
+  - **Prediction Playground**: Gráfico de nodos que dibuja dinámicamente y en tiempo real la topología de la Red Neuronal (capas ocultas, pesos y activaciones) integrando selectores de fecha nativos de Angular Material.
 
 ### 3.2. Estrategia de Testing (Vitest)
 A diferencia de proyectos tradicionales en Angular con Jasmine/Karma, AEMET Visualizer Pro ha migrado al experimental `@angular/build:unit-test` respaldado internamente por **Vitest**:

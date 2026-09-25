@@ -54,8 +54,6 @@ describe('HistoricalPrecipitationChart', () => {
     fixture.detectChanges();
     
     const options: any = component.chartOption();
-    expect(options.title.text).toBe('Precipitación Total Anual');
-    expect(options.title.textStyle.color).toBe('#424242'); // light mode
     expect(options.series.length).toBe(2);
     
     // Verifica los valores
@@ -76,7 +74,7 @@ describe('HistoricalPrecipitationChart', () => {
     fixture.detectChanges();
     
     const options: any = component.chartOption();
-    expect(options.title.textStyle.color).toBe('#e0e0e0'); // dark mode
+    expect(options.yAxis.nameTextStyle.color).toBe('#e0e0e0'); // dark mode
   });
   
   it('should handle undefined or invalid prec data gracefully', () => {

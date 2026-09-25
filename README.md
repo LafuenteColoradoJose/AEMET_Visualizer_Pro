@@ -17,9 +17,10 @@ Este proyecto está construido como un **Monorepo** que aloja dos aplicaciones p
     *   **Sincronización Pasiva (Lazy Loading)**: El backend incluye un sistema de tareas en segundo plano (`BackgroundTasks`) que contacta con la API de AEMET de forma asíncrona (`httpx`) al recibir peticiones del frontend. Si detecta que faltan meses completos vencidos en la base de datos local, los descarga y actualiza de forma transparente sin penalizar el tiempo de respuesta.
     *   **Calidad**: Sigue los estándares más altos de la industria con inyección de dependencias pura, un **100% de cobertura en tests unitarios** (vía `pytest`) y documentación exhaustiva (Docstrings PEP 257).
 *   **`frontend/`**: Aplicación Web **Angular 22** (SPA) que consume la API para presentar el dashboard interactivo. 
-    *   **Diseño**: Utiliza **SCSS** con CSS Grid para un diseño panorámico a dos columnas (sin scroll vertical en escritorio) y soporte nativo para **Modo Oscuro**.
-    *   **Gráficos**: Integra **Apache ECharts** (`ngx-echarts`) para visualizaciones avanzadas (Líneas, Heatmap de Calendario, Barras Polares).
-    *   **Calidad**: Mantiene una cobertura de pruebas excepcional mediante **Vitest** y entornos JSDOM.
+    *   **Diseño**: Utiliza **SCSS** con CSS Grid para un diseño panorámico a dos columnas (sin scroll vertical en escritorio) y soporte nativo para **Modo Oscuro**. Recientemente modernizado con diseño semántico de tarjetas, sombras suaves y objetivos táctiles de 48px para máxima accesibilidad.
+    *   **Fallback Offline (Resiliencia)**: Incluye volcados estáticos de la base de datos (JSON de 15MB). Si el backend sufre caídas o latencias excesivas, el servicio intercepta el error (`catchError`) y lee directamente de los estáticos locales, garantizando un funcionamiento ininterrumpido a coste cero.
+    *   **Gráficos**: Integra **Apache ECharts** (`ngx-echarts`) para visualizaciones avanzadas (Líneas, Heatmap de Calendario, Barras Polares, y simulaciones topológicas neuronales).
+    *   **Calidad**: Mantiene una cobertura de pruebas excepcional (+95%) mediante **Vitest** y entornos JSDOM.
 
 
 ## 📸 Galería y Diseño Responsivo
@@ -45,6 +46,8 @@ AEMET Visualizer Pro cuenta con una interfaz moderna, responsiva (adaptada a mó
 
 ### Prediction Playground (Inteligencia Artificial)
 <div align="center">
+  <img src="docs/assets/LaboratorioAI-dark.png" alt="Laboratorio AI Modo Oscuro" width="80%">
+  <br><br>
   AEMET Visualizer Pro integra un motor de inferencia neuronal nativo en el navegador que permite predecir el clima futuro y visualizar las activaciones de sus capas ocultas en tiempo real.
 </div>
 

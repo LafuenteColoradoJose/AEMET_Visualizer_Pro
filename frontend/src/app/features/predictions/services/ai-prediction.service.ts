@@ -2,38 +2,62 @@ import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 
+/**
+ * Representa la estructura de los pesos y configuraciones de la red neuronal pre-entrenada
+ * importada desde Python.
+ */
 export interface ModelWeights {
+  /** Metadatos de la arquitectura y variables de entrada (estaciones) */
   metadata: { 
     architecture: number[]; 
     stations: string[]; 
-    historical_means: { [station: string]: { [doy: string]: { tmax: number; tmin: number; prec: number; } } };
   };
-  scaler: { x_mean: number[]; x_scale: number[]; };
+  /** Parámetros del StandardScaler exportados de scikit-learn */
+  scaler: { 
+    x_mean: number[]; 
+    x_scale: number[];
+    y_mean: number[];
+    y_scale: number[];
+  };
+  /** Matriz 3D de los pesos para cada capa neuronal */
   weights: number[][][]; 
+  /** Vectores de sesgo (biases) para cada capa neuronal */
   biases: number[][];
 }
 
+/**
+ * Resultado completo de un pase hacia adelante (forward pass) de la red neuronal.
+ */
 export interface ForwardPassResult {
+  /** Predicciones finales destransformadas a sus unidades originales */
   predictions: {
     tmax: number;
     tmin: number;
     prec: number;
   };
+  /** Matriz de activaciones de cada capa (incluyendo input y output), usada para visualización */
   activations: number[][];
 }
 
+/**
+ * Servicio encargado de cargar el modelo de IA y ejecutar inferencias locales 
+ * de red neuronal multicapa (Perceptrón) enteramente en el cliente usando TypeScript.
+ */
 @Injectable({
   providedIn: 'root'
 })
 export class AiPredictionService {
   private modelData = signal<ModelWeights | null>(null);
+  
+  /** Signal computado que expone si el modelo ha sido cargado satisfactoriamente en memoria */
   public isModelLoaded = computed(() => this.modelData() !== null);
-
-  // Historial reciente para inercia térmica
-  private recentHistory = signal<any[]>([]);
 
   constructor(private http: HttpClient) {}
 
+  /**
+   * Carga asíncronamente los pesos del modelo pre-entrenado desde los assets estáticos.
+   * @throws Error si falla la petición HTTP
+   */
   async loadModel(): Promise<void> {
     try {
       const data = await firstValueFrom(this.http.get<ModelWeights>('/model-weights.json'));
@@ -44,72 +68,30 @@ export class AiPredictionService {
     }
   }
 
-  private formatDateLocal(d: Date): string {
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
-  }
-
-  // Carga los últimos 15 días de la estación para alimentar la red
-  async loadRecentHistory(stationId: string): Promise<void> {
-    try {
-      const end = new Date();
-      const start = new Date();
-      start.setDate(end.getDate() - 15);
-      
-      const startStr = this.formatDateLocal(start);
-      const endStr = this.formatDateLocal(end);
-      
-      const records = await firstValueFrom(
-        this.http.get<any[]>(`https://aemet-visualizer-pro-backend.onrender.com/api/v1/weather/historical?estacion=${stationId}&start_date=${startStr}&end_date=${endStr}`)
-      );
-      this.recentHistory.set(records);
-    } catch (error) {
-      console.error('Error al cargar historial reciente:', error);
-      this.recentHistory.set([]);
-    }
-  }
-  
+  /**
+   * Obtiene la estructura interna del modelo si está cargado.
+   */
   public getModel(): ModelWeights | null {
     return this.modelData();
   }
 
-  private getHistoricalMean(stationId: string, dayOfYear: number) {
-    const model = this.modelData();
-    if (!model) return { tmax: 0, tmin: 0, prec: 0 };
-    
-    if (stationId === 'ANDALUCIA') {
-      let tmax = 0, tmin = 0, prec = 0;
-      let count = 0;
-      for (const st of model.metadata.stations) {
-         const means = model.metadata.historical_means[st]?.[dayOfYear.toString()];
-         if (means) { tmax += means.tmax; tmin += means.tmin; prec += means.prec; count++; }
-      }
-      return count > 0 ? { tmax: tmax/count, tmin: tmin/count, prec: prec/count } : { tmax: 0, tmin: 0, prec: 0 };
-    }
-    
-    const means = model.metadata.historical_means[stationId]?.[dayOfYear.toString()];
-    return means || { tmax: 0, tmin: 0, prec: 0 };
-  }
-
-  // Calcula qué día del año es una fecha
-  private getDayOfYear(d: Date): number {
-    const start = new Date(d.getFullYear(), 0, 0);
-    const diff = d.getTime() - start.getTime();
-    const oneDay = 1000 * 60 * 60 * 24;
-    return Math.floor(diff / oneDay);
-  }
-
-  predictAndTrace(targetDate: Date, stationId: string): ForwardPassResult {
+  /**
+   * Ejecuta el pase hacia adelante (Forward Pass) con la red neuronal para estimar
+   * las variables meteorológicas de una región en un momento futuro.
+   * 
+   * @param targetYear Año objetivo de la predicción (ej. 2040)
+   * @param targetMonth Mes objetivo (1 al 12)
+   * @param stationId ID de la estación o 'ANDALUCIA' para promedio regional
+   * @returns El resultado incluyendo predicciones y la topología de activaciones
+   */
+  predictAndTrace(targetYear: number, targetMonth: number, stationId: string): ForwardPassResult {
     const model = this.modelData();
     if (!model) throw new Error('El modelo aún no está cargado');
 
-    const dayOfYear = this.getDayOfYear(targetDate);
-    const sinDay = Math.sin(dayOfYear * (2 * Math.PI / 365.25));
-    const cosDay = Math.cos(dayOfYear * (2 * Math.PI / 365.25));
+    const sinMonth = Math.sin(targetMonth * (2 * Math.PI / 12));
+    const cosMonth = Math.cos(targetMonth * (2 * Math.PI / 12));
 
-    const inputs = [sinDay, cosDay];
+    const inputs = [targetYear, sinMonth, cosMonth];
     for (const st of model.metadata.stations) {
       if (stationId === 'ANDALUCIA') {
         inputs.push(1.0 / model.metadata.stations.length);
@@ -118,58 +100,34 @@ export class AiPredictionService {
       }
     }
     
-    // Calcular Lags de Anomalías reales (5 días)
-    const history = this.recentHistory();
-    const lagAnomalies = [];
-    
-    for (let i = 1; i <= 5; i++) {
-      const lagDate = new Date(targetDate);
-      lagDate.setDate(targetDate.getDate() - i);
-      const lagDateStr = this.formatDateLocal(lagDate);
-      
-      const record = history.find(r => r.fecha === lagDateStr);
-      if (record && record.tmax !== null && record.tmin !== null && record.prec !== null) {
-        // Encontramos el dato real. Calculamos su anomalía restándole la media histórica de ese día lagDate.
-        const lagDoy = this.getDayOfYear(lagDate);
-        const baseline = this.getHistoricalMean(stationId, lagDoy);
-        lagAnomalies.push(record.tmax - baseline.tmax);
-        lagAnomalies.push(record.tmin - baseline.tmin);
-        lagAnomalies.push(record.prec - baseline.prec);
-      } else {
-        // Si no tenemos el dato (ej. predecimos 2030, o falta dato), asumimos 0 anomalía
-        lagAnomalies.push(0, 0, 0);
-      }
-    }
-
-    inputs.push(...lagAnomalies);
-
+    // Escalar los inputs usando el StandardScaler exportado
     const scaledInputs = inputs.map((val, idx) => (val - model.scaler.x_mean[idx]) / model.scaler.x_scale[idx]);
     
     const allActivations: number[][] = [scaledInputs];
     let currentActivations = scaledInputs;
     
-    // Forward pass con ReLU
+    // Forward pass con ReLU para capas ocultas
     for (let i = 0; i < model.weights.length - 1; i++) {
       currentActivations = this.matrixMultiplyAndAdd(currentActivations, model.weights[i], model.biases[i]);
       currentActivations = currentActivations.map(val => Math.max(0, val));
       allActivations.push(currentActivations);
     }
 
+    // Capa de salida (Sin activación ReLU para permitir temperaturas negativas si fuese el caso)
     const outIdx = model.weights.length - 1;
     let finalOutput = this.matrixMultiplyAndAdd(currentActivations, model.weights[outIdx], model.biases[outIdx]);
     allActivations.push(finalOutput);
     
-    const baseline = this.getHistoricalMean(stationId, dayOfYear);
-    
-    const outTmax = baseline.tmax + finalOutput[0];
-    const outTmin = baseline.tmin + finalOutput[1];
-    const outPrec = baseline.prec + finalOutput[2];
+    // Des-escalar la salida: y = (y_scaled * scale) + mean
+    const outTmax = (finalOutput[0] * model.scaler.y_scale[0]) + model.scaler.y_mean[0];
+    const outTmin = (finalOutput[1] * model.scaler.y_scale[1]) + model.scaler.y_mean[1];
+    const outPrec = (finalOutput[2] * model.scaler.y_scale[2]) + model.scaler.y_mean[2];
 
     return {
       predictions: {
         tmax: Math.round(outTmax * 10) / 10,
         tmin: Math.round(outTmin * 10) / 10,
-        prec: Math.round(Math.max(0, outPrec) * 10) / 10
+        prec: Math.round(Math.max(0, outPrec) * 10) / 10 // La precipitación acumulada no puede ser negativa
       },
       activations: allActivations
     };

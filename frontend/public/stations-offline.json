@@ -1,0 +1,47 @@
+[
+  {
+    "id": "ANDALUCIA",
+    "nombre": "Toda Andaluc\u00eda (Promedio)",
+    "provincia": "ANDALUCIA"
+  },
+  {
+    "id": "6325O",
+    "nombre": "Almer\u00eda Aeropuerto",
+    "provincia": "ALMERIA"
+  },
+  {
+    "id": "3195",
+    "nombre": "C\u00e1diz (Observatorio)",
+    "provincia": "CADIZ"
+  },
+  {
+    "id": "5402",
+    "nombre": "C\u00f3rdoba Aeropuerto",
+    "provincia": "CORDOBA"
+  },
+  {
+    "id": "5530E",
+    "nombre": "Granada Aeropuerto",
+    "provincia": "GRANADA"
+  },
+  {
+    "id": "4642E",
+    "nombre": "Huelva, Ronda Este",
+    "provincia": "HUELVA"
+  },
+  {
+    "id": "5270B",
+    "nombre": "Ja\u00e9n",
+    "provincia": "JAEN"
+  },
+  {
+    "id": "6155A",
+    "nombre": "M\u00e1laga Aeropuerto",
+    "provincia": "MALAGA"
+  },
+  {
+    "id": "5783",
+    "nombre": "Sevilla Aeropuerto",
+    "provincia": "SEVILLA"
+  }
+]

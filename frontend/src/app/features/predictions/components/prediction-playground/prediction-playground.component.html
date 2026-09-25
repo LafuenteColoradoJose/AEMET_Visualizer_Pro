@@ -1,44 +1,85 @@
 <div class="playground-container">
-  <!-- Loading State -->
+  <!-- Loading State Mejorado -->
   @if (isLoading()) {
-    <div class="loading-state">
-      <mat-spinner diameter="48"></mat-spinner>
-      <p>Cargando Cerebro Climático...</p>
+    <div class="loading-state" role="status" aria-label="Cargando modelo neuronal">
+      <mat-spinner diameter="56" strokeWidth="4"></mat-spinner>
+      <p>Despertando Cerebro Climático...</p>
     </div>
   } @else {
     <div class="playground-grid">
       
-      <!-- Panel Izquierdo: Inputs de Usuario -->
-      <mat-card class="controls-card">
-        <mat-card-header>
-          <div mat-card-avatar><mat-icon>public</mat-icon></div>
-          <mat-card-title>El Oráculo Climático</mat-card-title>
-          <mat-card-subtitle>Elige una fecha para viajar al futuro</mat-card-subtitle>
-        </mat-card-header>
+      <!-- Panel Izquierdo: Controles de Simulación y Resultados -->
+      <mat-card class="modern-card controls-card">
         
-        <mat-card-content class="sliders-container">
-          
-          <mat-form-field appearance="outline" class="w-100" style="margin-top: 1rem; width: 100%;">
-            <mat-label>Día Objetivo (Predicción)</mat-label>
-            <input matInput [matDatepicker]="picker" [ngModel]="targetDate()" (dateChange)="onDateChange($event.value)">
-            <mat-hint>DD/MM/YYYY</mat-hint>
-            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-            <mat-datepicker #picker></mat-datepicker>
+        <div class="card-header-custom">
+          <div class="icon-box"><mat-icon>science</mat-icon></div>
+          <div class="header-text">
+            <h2>Simulador Climático</h2>
+            <p>Evolución de Tendencias (1950 - 2060)</p>
+          </div>
+        </div>
+        
+        <div class="controls-section">
+          <!-- Selector de Estación / Provincia -->
+          <app-station-selector class="touch-target-wrap"></app-station-selector>
+
+          <!-- Selector de Mes -->
+          <mat-form-field appearance="outline" class="w-100 month-selector touch-target-wrap">
+            <mat-label>Mes a Proyectar</mat-label>
+            <mat-select [ngModel]="selectedMonth()" (ngModelChange)="selectedMonth.set($event)" aria-label="Seleccionar mes para la proyección">
+              @for (m of months; track m.value) {
+                <mat-option [value]="m.value">{{ m.label }}</mat-option>
+              }
+            </mat-select>
           </mat-form-field>
           
-          <div class="hero-prediction" style="margin-top: 2rem;">
-            <div class="pred-title">T. Máxima Esperada:</div>
-            <div class="pred-value" style="color: #ff0055;">{{ forwardPass()?.predictions?.tmax }} ºC</div>
-            <div class="pred-title" style="margin-top: 10px;">T. Mínima Esperada:</div>
-            <div class="pred-value" style="color: #00d2ff; font-size: 2.5rem;">{{ forwardPass()?.predictions?.tmin }} ºC</div>
-            <div class="pred-title" style="margin-top: 10px;">Lluvia Esperada:</div>
-            <div class="pred-value" style="color: #00ffaa; font-size: 2.5rem;">{{ forwardPass()?.predictions?.prec }} mm</div>
+          <!-- Slider Dinámico -->
+          <div class="slider-box">
+            <div class="slider-header">
+              <span class="slider-title">Año a Proyectar:</span>
+              <span class="year-badge" [class.future-badge]="selectedYear() > currentYear">{{ selectedYear() }}</span>
+            </div>
+            
+            <mat-slider min="1950" max="2060" step="1" discrete [displayWith]="formatYear" class="w-100 touch-slider">
+              <input matSliderThumb [ngModel]="selectedYear()" (ngModelChange)="selectedYear.set($event)" aria-label="Seleccionar año de simulación">
+            </mat-slider>
+
+            <div class="slider-labels">
+              <span>1950</span>
+              <span class="marker-today">{{ currentYear }}</span>
+              <span>2060</span>
+            </div>
           </div>
-        </mat-card-content>
+        </div>
+          
+        <!-- KPI Grid de Resultados -->
+        <div class="kpi-grid">
+          <div class="kpi-card tmax">
+            <span class="kpi-label">T. Máxima</span>
+            <span class="kpi-value">{{ forwardPass()?.predictions?.tmax }} ºC</span>
+          </div>
+          <div class="kpi-card tmin">
+            <span class="kpi-label">T. Mínima</span>
+            <span class="kpi-value">{{ forwardPass()?.predictions?.tmin }} ºC</span>
+          </div>
+          <div class="kpi-card prec">
+            <span class="kpi-label">Lluvia</span>
+            <span class="kpi-value">{{ forwardPass()?.predictions?.prec }} mm</span>
+          </div>
+        </div>
+
+        <div class="climate-disclaimer">
+          <mat-icon>info</mat-icon>
+          <p>Inferencia en cliente sobre series históricas de AEMET. Proyección de tendencias basadas en registros oficiales.</p>
+        </div>
       </mat-card>
 
-      <!-- Panel Derecho: Visualización ECharts -->
-      <mat-card class="viz-card">
+      <!-- Panel Derecho: Visualización ECharts de la Topología Neuronal -->
+      <mat-card class="modern-card viz-card">
+        <div class="viz-header">
+          <h3>Topología de la Red Neuronal</h3>
+          <p>Visualización en tiempo real de pesos y activaciones</p>
+        </div>
         <div echarts [options]="chartOption()" class="echarts-graph"></div>
       </mat-card>
       

@@ -31,6 +31,7 @@ Para evitar saturar la API oficial de la AEMET y garantizar un rendimiento ópti
 2. **Reconstrucción Histórica (Data Backfilling)**: Para garantizar series climáticas continuas e ininterrumpidas desde 1950 en toda Andalucía, se implementaron rutinas de empalme que recuperan los datos de las estaciones legacy ya clausuradas (ej: `4605` en Huelva, `5270` en Jaén, `6297` en Almería) y los asocian en base de datos a los indicativos de las estaciones modernas (`4642E`, `5270B`, `6325O`), resolviendo las discontinuidades inherentes al sistema de inventario de AEMET.
 3. **Almacenamiento (Persistencia Híbrida)**: Los datos limpios se insertan en una base de datos **PostgreSQL** en la nube (producción) o en SQLite (`weather.db`) para desarrollo local, utilizando la variable de entorno `DATABASE_URL`.
 4. **Consulta (API)**: Cuando el frontend de Angular solicita datos, el servicio (`services/aemet_service.py`) consulta directamente la base de datos, devolviendo JSON limpios en fracciones de segundo.
+5. **Generación de Estáticos (Offline DB)**: Scripts de Python adicionales iteran la base de datos para generar un volcado masivo en archivos `historical-offline.json` y `stations-offline.json` (aprox. 15MB). Estos archivos se alojan estáticamente en la carpeta `public` del frontend.
 
 ### 2.3. Pruebas Unitarias y Calidad (QA)
 El backend se rige bajo una filosofía estricta de calidad:
@@ -47,8 +48,9 @@ El proyecto incluye un motor predictivo basado en Redes Neuronales Artificiales 
 
 ### 3.1. Stack Tecnológico y Arquitectura
 - **Framework:** Angular 22 utilizando **Standalone Components**, el nuevo Control Flow (`@if`, `@for`) y **Signals** (`signal()`, `computed()`) para un estado reactivo ultra-rápido y sin dependencias de RxJS cuando no es estrictamente necesario. Se sigue una arquitectura de carpetas por módulos funcionales (`core`, `shared`, `features`).
-- **Diseño y Maquetación:** Se emplea **SCSS** puro apoyado en **CSS Grid** (`.dashboard-grid`). El diseño es **panorámico a dos columnas** en escritorio para evitar el *scroll vertical*, colapsando fluidamente a una sola columna en pantallas estrechas.
-- **Modo Oscuro Nivel Sistema:** Integración de Dark Mode gestionado de forma reactiva (`theme.service.ts`). Escucha activamente `window.matchMedia('(prefers-color-scheme: dark)')` y persiste la preferencia local. Utiliza variables CSS y una paleta de 5 colores exactos (Gris oscuro, Azul Eléctrico, Gris medio, Verde Menta, Blanco/Negro) compartida en toda la app.
+- **Diseño y Maquetación:** Se emplea **SCSS** puro apoyado en **CSS Grid** (`.dashboard-grid`). El diseño adopta los últimos estándares UI/UX (Phase 3): tarjetas semánticas con bordes de 24px, sombras difuminadas, sistema de separación en múltiplos de 8px (Grid de 8pt), y zonas de pulsación (*touch targets*) de al menos 48px para máxima accesibilidad móvil. 
+- **Resiliencia (Modo Offline 100%)**: La capa de red (`weather.service.ts`, `station.service.ts`) implementa patrones de interceptación de errores (`catchError` de RxJS). Si el backend de Render rechaza conexiones o está en cold-start, el frontend carga de manera transparente la base de datos estática servida por CDN (15MB de JSON).
+- **Modo Oscuro Nivel Sistema:** Integración de Dark Mode gestionado de forma reactiva (`theme.service.ts`). Escucha activamente `window.matchMedia('(prefers-color-scheme: dark)')` y persiste la preferencia local. Utiliza variables CSS dinámicas nativas (`--mat-sys-surface`, `--mat-sys-on-surface`) de Material M3 para transiciones de color automáticas en todos los componentes y gráficos.
 - **Visualización de Datos:** **Apache ECharts** (`ngx-echarts`). Las gráficas se adaptan automáticamente a cambios de ventana y alternan sus esquemas de color entre `dark` y el modo claro usando un `ResizeObserver`. Componentes construidos hasta la fecha:
   - Gráficos de Líneas y Área (Visión General de Temperatura).
   - Componentes estadísticos tipo *Cards* (Días de Lluvia).

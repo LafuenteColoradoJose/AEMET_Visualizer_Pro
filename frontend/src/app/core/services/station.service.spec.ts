@@ -39,7 +39,7 @@ describe('StationService', () => {
     
     service.loadStations();
     
-    const req = httpMock.expectOne('https://aemet-visualizer-pro-backend.onrender.com/api/v1/weather/stations');
+    const req = httpMock.expectOne('http://127.0.0.1:8000/api/v1/weather/stations');
     expect(req.request.method).toBe('GET');
     req.flush(mockStations);
     
@@ -52,7 +52,7 @@ describe('StationService', () => {
     
     service.loadStations();
     
-    const req = httpMock.expectOne('https://aemet-visualizer-pro-backend.onrender.com/api/v1/weather/stations');
+    const req = httpMock.expectOne('http://127.0.0.1:8000/api/v1/weather/stations');
     req.flush(mockStations);
     
     expect(service.stations()).toEqual(mockStations);
@@ -60,14 +60,17 @@ describe('StationService', () => {
   });
 
   it('should handle error when loading stations', () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     
     service.loadStations();
     
-    const req = httpMock.expectOne('https://aemet-visualizer-pro-backend.onrender.com/api/v1/weather/stations');
+    const req = httpMock.expectOne('http://127.0.0.1:8000/api/v1/weather/stations');
     req.flush('Error fetching data', { status: 500, statusText: 'Server Error' });
     
-    expect(consoleSpy).toHaveBeenCalled();
+    const offlineReq = httpMock.expectOne('/stations-offline.json');
+    offlineReq.flush([]);
+    
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Backend API unreachable'));
     expect(service.stations()).toEqual([]);
   });
 
